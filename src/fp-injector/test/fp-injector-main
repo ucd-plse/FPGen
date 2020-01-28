@@ -1,0 +1,21 @@
+{
+  "funcName" : "main",
+  "fileName" : "/home/fptesting/clang-tools/fp-injector/src/src/fp-injector/test/test_fcall.cpp",
+  "forLoops" : { 
+    1: {
+      19_21: {
+        "adds" : [ 
+        ],
+        "inner loops" : [ 
+        ],
+        "fcalls" : [ ,
+          [foo, /home/fptesting/clang-tools/fp-injector/src/src/fp-injector/test/test_fcall.cpp]
+        ]
+      }
+    }
+  },
+  "fcalls" : [ 
+    [foo, /home/fptesting/clang-tools/fp-injector/src/src/fp-injector/test/test_fcall.cpp]
+  ]
+
+}

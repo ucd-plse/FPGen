@@ -1,0 +1,72 @@
+
+Start base search:
+
+Start symbolic execution 1:
+time klee --allow-external-sym-calls --max-solver-time=2000 --max-time=2000 --search=nurs:covnew wsd-SYMBOLIC-sample.bc myinput
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 6.8044391494e-16 [klee-last/test000027-input].
+---top 10 inputs
+klee-last/test000027-input -- 6.8044391494e-16
+klee-last/test000010-input -- 6.0620405429e-16
+klee-last/test000014-input -- 1.3613031907e-16
+klee-last/test000026-input -- 0.0000000000e+00
+klee-last/test000025-input -- 0.0000000000e+00
+klee-last/test000024-input -- 0.0000000000e+00
+klee-last/test000023-input -- 0.0000000000e+00
+klee-last/test000022-input -- 0.0000000000e+00
+klee-last/test000021-input -- 0.0000000000e+00
+klee-last/test000020-input -- 0.0000000000e+00
+
+Start symbolic execution 2:
+time klee --allow-external-sym-calls --max-solver-time=2000 --max-time=2000 --search=nurs:covnew wsd-SYMBOLIC-sample.bc myinput
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 3.7439338923e-02 [klee-last/test000008-input].
+---top 10 inputs
+klee-last/test000008-input -- 3.7439338923e-02
+klee-last/test000009-input -- 5.7985079572e-05
+klee-last/test000013-input -- 3.6255931282e-13
+klee-last/test000011-input -- 1.1246611974e-13
+klee-last/test000015-input -- 2.7258841324e-14
+klee-last/test000001-input -- 4.5792358711e-16
+klee-last/test000007-input -- 1.3698674755e-16
+klee-last/test000014-input -- 0.0000000000e+00
+klee-last/test000012-input -- 0.0000000000e+00
+klee-last/test000010-input -- 0.0000000000e+00
+
+Start symbolic execution 3:
+time klee --allow-external-sym-calls --max-solver-time=2000 --max-time=2000 --search=nurs:covnew wsd-SYMBOLIC-sample.bc myinput
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 7.4698873441e-13 [klee-last/test000007-input].
+---top 10 inputs
+klee-last/test000008-input -- 7.4698873441e-13
+klee-last/test000007-input -- 7.4698873441e-13
+klee-last/test000004-input -- 7.4671476092e-13
+klee-last/test000005-input -- 1.6488902073e-13
+klee-last/test000006-input -- 1.1927125499e-14
+klee-last/test000002-input -- 1.5261372375e-16
+klee-last/test000009-input -- 0.0000000000e+00
+klee-last/test000003-input -- 0.0000000000e+00
+klee-last/test000001-input -- 0.0000000000e+00
+
+Time Out [0]
+
+
+ FPGen log:
+base search : best relative error:1.2451e-12, number of tests:88832, time:00:20:00
+base values = 
+6.054000e-03
+-6.355627e+01
+9.191199e+01
+-6.883601e+01
+9.681532e+01
+-5.081662e+01
+-4.989364e+01
+8.179340e+01
+
+
+N=8, S=4, SEED=334 : best relative error:6.8044e-16, number of tests:27, time:00:33:20 [00:48:09]
+N=8, S=2, SEED=141 : best relative error:3.7439e-02, number of tests:15, time:00:33:20 [01:01:49]
+N=8, S=2, SEED=428 : best relative error:7.4699e-13, number of tests:9, time:00:33:20 [01:00:20]
+
+
+ Best Relative Error:  3.7439e-02; Number of tests: 88883, time: 02:00:00 [S:2, SEED:141]

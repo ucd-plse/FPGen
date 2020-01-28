@@ -1,0 +1,144 @@
+/home/fptesting/FPTesting/benchmarks/gsl/wabsdev-m/s3fp
+
+Start RANDOM:
+==== run random ====
+==== S3FP arguments and settings ====
+input bit-width: 32
+n inputs: 8
+input_name: test_input
+LP EXE: ./sequential-64 -> test_output_64
+HP EXE: ./sequential-80 -> test_output_80
+RT_MODE: 1
+TIMEOUT: 7200
+T_RESOURCE: 1
+RSEED: 0
+PARALLELRT: 0
+T_FP_ERROR: 1
+UNIFORM_INPUT: 1
+REL_DELTA: 1.17549e-38
+UNIFORM_INPUTLB: -100
+UNIFORM_INPUTUB: 100
+CHECK UNSTABLE ERROR: 0
+=====================================
+rm: cannot remove 'test_output_64': No such file or directory
+rm: cannot remove 'test_output_80': No such file or directory
+Update Global:  vLP: 41.5578  vs  vHP: 41.5578 -- 0
+Update Global:  vLP: 27.1909  vs  vHP: 27.1909 -- -2.61317e-16
+Update Global:  vLP: 54.2785  vs  vHP: 54.2785 -- 3.9272e-16
+Update Global:  vLP: 6.64018  vs  vHP: 6.64018 -- -1.73886e-15
+Update Global:  vLP: 4.3748  vs  vHP: 4.3748 -- -1.82719e-15
+Update Global:  vLP: 0.71382  vs  vHP: 0.71382 -- -1.1976e-14
+Update Global:  vLP: 0.0121021  vs  vHP: 0.0121021 -- -2.03544e-14
+Update Global:  vLP: 0.0240705  vs  vHP: 0.0240705 -- 1.98332e-13
+Update Global:  vLP: 0.0179666  vs  vHP: 0.0179666 -- 7.98685e-13
+Update Global:  vLP: 0.000247979  vs  vHP: 0.000247979 -- 7.80691e-12
+Update Global:  vLP: 0.000685544  vs  vHP: 0.000685544 -- -8.24669e-12
+Update Global:  vLP: 0.000286252  vs  vHP: 0.000286252 -- -2.68403e-11
+N VALID PLAIN TESTS: 338606
+N PLAIN TESTS: 504361
+N LOCAL UPDATES: 0
+N GLOBAL UPDATES: 12
+Best Relative Error: 2.68403e-11 [-2.68403e-11, 7.80691e-12]
+vLP : vHP when Rel. Error = -2.68403e-11 :: 0.000286252 : 0.000286252
+vLP : vHP when Rel. Error = 7.80691e-12 :: 0.000247979 : 0.000247979
+AVERAGE ERROR: 1.2973e-16
+ERROR VARIANCE: 2.51038e-27
+
+  -RANDOM      Rel. Error: 2.68403e-11, #Inputs: 504361, time: 02:00:00
+
+Start S3FP:
+==== run s3fp ====
+==== S3FP arguments and settings ====
+input bit-width: 32
+n inputs: 8
+input_name: test_input
+LP EXE: ./sequential-64 -> test_output_64
+HP EXE: ./sequential-80 -> test_output_80
+RT_MODE: 2
+TIMEOUT: 7200
+T_RESOURCE: 1
+RSEED: 0
+PARALLELRT: 0
+T_FP_ERROR: 1
+UNIFORM_INPUT: 1
+REL_DELTA: 1.17549e-38
+UNIFORM_INPUTLB: -100
+UNIFORM_INPUTUB: 100
+CHECK UNSTABLE ERROR: 0
+=====================================
+Update Global:  vLP: 27.4622  vs  vHP: 27.4622 -- 1.29367e-16
+Update Global:  vLP: 5.88583  vs  vHP: 5.88583 -- 9.05407e-16
+Update Global:  vLP: 19.1431  vs  vHP: 19.1431 -- 1.11353e-15
+Update Global:  vLP: 1.85354  vs  vHP: 1.85354 -- -4.07302e-15
+Update Global:  vLP: 0.550846  vs  vHP: 0.550846 -- -6.65111e-15
+Update Global:  vLP: 0.182387  vs  vHP: 0.182387 -- -1.32396e-14
+Update Global:  vLP: 0.283221  vs  vHP: 0.283221 -- -1.4308e-14
+Update Global:  vLP: 0.0259142  vs  vHP: 0.0259142 -- -3.84376e-13
+Update Global:  vLP: 0.0115278  vs  vHP: 0.0115278 -- -7.30739e-13
+Update Global:  vLP: 0.00611657  vs  vHP: 0.00611657 -- 1.09871e-12
+Update Global:  vLP: 1.35334e-05  vs  vHP: 1.35334e-05 -- 9.99809e-12
+Update Global:  vLP: 0.000676481  vs  vHP: 0.000676481 -- -1.23691e-11
+Update Global:  vLP: 0.000464763  vs  vHP: 0.000464763 -- -1.53778e-11
+Update Global:  vLP: 2.43711e-05  vs  vHP: 2.43711e-05 -- 5.70149e-11
+Update Global:  vLP: 0.000167771  vs  vHP: 0.000167771 -- -5.71587e-11
+Update Global:  vLP: 9.99035e-05  vs  vHP: 9.99035e-05 -- -6.96643e-11
+Update Global:  vLP: 0.000133466  vs  vHP: 0.000133466 -- -1.10479e-10
+Update Global:  vLP: 3.1031e-05  vs  vHP: 3.1031e-05 -- 4.21564e-10
+Update Global:  vLP: 1.70176e-05  vs  vHP: 1.70176e-05 -- 8.22124e-10
+Update Global:  vLP: 1.09386e-05  vs  vHP: 1.09386e-05 -- -1.17117e-09
+Update Global:  vLP: 1.41875e-06  vs  vHP: 1.41875e-06 -- 2.53479e-09
+Update Global:  vLP: 1.41874e-06  vs  vHP: 1.41874e-06 -- 2.53484e-09
+Update Global:  vLP: 5.9885e-07  vs  vHP: 5.9885e-07 -- -2.37882e-08
+Update Global:  vLP: 2.35723e-08  vs  vHP: 2.35724e-08 -- -1.63226e-07
+Update Global:  vLP: 6.34382e-09  vs  vHP: 6.34382e-09 -- -2.24777e-07
+Update Global:  vLP: 7.05491e-09  vs  vHP: 7.05491e-09 -- -7.25372e-07
+Update Global:  vLP: 1.05558e-09  vs  vHP: 1.05557e-09 -- 1.47084e-06
+Update Global:  vLP: 1.04951e-08  vs  vHP: 1.0495e-08 -- 2.12761e-06
+Update Global:  vLP: 6.63184e-09  vs  vHP: 6.63181e-09 -- 3.53651e-06
+Update Global:  vLP: 1.16611e-09  vs  vHP: 1.16609e-09 -- 2.20766e-05
+N VALID BGRT TESTS: 457413
+N BGRT TESTS: 496713
+N LOCAL UPDATES: 0
+N GLOBAL UPDATES: 30
+Best Relative Error: 2.20766e-05 [-1.63978e-06, 2.20766e-05]
+vLP : vHP when Rel. Error = -1.63978e-06 :: 3.35143e-09 : 3.35144e-09
+vLP : vHP when Rel. Error = 2.20766e-05 :: 1.16611e-09 : 1.16609e-09
+AVERAGE ERROR: 6.63658e-11
+ERROR VARIANCE: 1.10879e-15
+
+  -S3FP        Rel. Error: 2.20766e-05, #Inputs: 496713, time: 02:00:00
+
+Start KLEE-FLOAT:
+/home/fptesting/FPTesting/benchmarks/gsl/wabsdev-m/klee
+time klee --allow-external-sym-calls --max-solver-time=7200 --max-time=7200 --search=nurs:covnew wabsdev-m-SYMBOLIC.bc
+The sample variance is 0
+The sample variance is 0
+The sample variance is 0
+The sample variance is 0
+The sample variance is 0
+The sample variance is nan
+The sample variance is 0
+The sample variance is 0
+The sample variance is 0
+The sample variance is 0
+The sample variance is 0
+The sample variance is nan
+The sample variance is 0
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+compute_error.sh klee-last/test*-input ../test/sequential-64 ../test/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000016-input -- 0.0000000000e+00
+klee-last/test000015-input -- 0.0000000000e+00
+klee-last/test000014-input -- 0.0000000000e+00
+klee-last/test000013-input -- 0.0000000000e+00
+klee-last/test000012-input -- 0.0000000000e+00
+klee-last/test000011-input -- 0.0000000000e+00
+klee-last/test000010-input -- 0.0000000000e+00
+klee-last/test000009-input -- 0.0000000000e+00
+klee-last/test000008-input -- 0.0000000000e+00
+klee-last/test000007-input -- 0.0000000000e+00
+
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:24

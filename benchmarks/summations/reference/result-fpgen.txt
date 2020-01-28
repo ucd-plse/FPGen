@@ -1,0 +1,6 @@
+Test recursive-summation:
+  -FPGen   Rel. Error: 1.0000e+00, #Inputs: 9472, time: 02:00:00
+Test pairwise-summation:
+  -FPGen   Rel. Error: 1.3174e-16, #Inputs: 1532, time: 02:00:00
+Test compensated-summation:
+  -FPGen   Rel. Error: 1.0000e+00, #Inputs: 547, time: 02:00:00

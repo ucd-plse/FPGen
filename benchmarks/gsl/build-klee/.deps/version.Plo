@@ -1,0 +1,8 @@
+version.lo: ../version.c config.h ../gsl_version.h \
+  /home/hguo/home2/projects/diff-testing/local/test/lib/gsl-2.5/build/include/gsl/gsl_types.h
+
+config.h:
+
+../gsl_version.h:
+
+/home/hguo/home2/projects/diff-testing/local/test/lib/gsl-2.5/build/include/gsl/gsl_types.h:

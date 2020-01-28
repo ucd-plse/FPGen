@@ -1,0 +1,56 @@
+
+Start base search:
+==== run s3fp ====
+
+Start symbolic execution 1:
+time klee --allow-external-sym-calls --max-solver-time=3300 --max-time=3300 --search=nurs:covnew dot-SYMBOLIC-sample.bc myinput
+1-01compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000108-input -- 0.0000000000e+00
+klee-last/test000107-input -- 0.0000000000e+00
+klee-last/test000106-input -- 0.0000000000e+00
+klee-last/test000105-input -- 0.0000000000e+00
+klee-last/test000104-input -- 0.0000000000e+00
+klee-last/test000103-input -- 0.0000000000e+00
+klee-last/test000102-input -- 0.0000000000e+00
+klee-last/test000101-input -- 0.0000000000e+00
+klee-last/test000100-input -- 0.0000000000e+00
+klee-last/test000099-input -- 0.0000000000e+00
+
+Start symbolic execution 2:
+time klee --allow-external-sym-calls --max-solver-time=3300 --max-time=3300 --search=nurs:covnew dot-SYMBOLIC-sample.bc myinput
+1-1-1-10-compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 1.9190174631e-04 [klee-last/test000024-input].
+---top 10 inputs
+klee-last/test000024-input -- 1.9190174631e-04
+klee-last/test000023-input -- 0.0000000000e+00
+klee-last/test000022-input -- 0.0000000000e+00
+klee-last/test000021-input -- 0.0000000000e+00
+klee-last/test000020-input -- 0.0000000000e+00
+klee-last/test000019-input -- 0.0000000000e+00
+klee-last/test000018-input -- 0.0000000000e+00
+klee-last/test000017-input -- 0.0000000000e+00
+klee-last/test000016-input -- 0.0000000000e+00
+klee-last/test000015-input -- 0.0000000000e+00
+Time Out [0]
+
+
+ FPGen log:
+base search : best relative error:1.7010e-12, number of tests:43517, time:00:10:00
+base values = 
+-4.616746e+01
+2.784828e+01
+7.007180e-01
+-9.169555e+01
+9.149467e+01
+-1.280123e+01
+-7.834660e+01
+-5.055573e+01
+
+
+N=8, S=4, SEED=291 : best relative error:0.0000e+00, number of tests:108, time:00:55:00 [01:34:17]
+N=8, S=2, SEED=355 : best relative error:1.9190e-04, number of tests:24, time:00:55:00 [00:04:26]
+
+
+ Best Relative Error:  1.9190e-04; Number of tests: 43649, time: 02:00:00 [S:2, SEED:355]

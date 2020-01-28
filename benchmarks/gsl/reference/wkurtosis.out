@@ -1,0 +1,72 @@
+
+Start base search:
+
+Start symbolic execution 1:
+time klee --allow-external-sym-calls --max-solver-time=2000 --max-time=2000 --search=nurs:covnew wkurtosis-SYMBOLIC-sample.bc myinput
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000018-input -- 0.0000000000e+00
+klee-last/test000017-input -- 0.0000000000e+00
+klee-last/test000016-input -- 0.0000000000e+00
+klee-last/test000015-input -- 0.0000000000e+00
+klee-last/test000014-input -- 0.0000000000e+00
+klee-last/test000013-input -- 0.0000000000e+00
+klee-last/test000012-input -- 0.0000000000e+00
+klee-last/test000011-input -- 0.0000000000e+00
+klee-last/test000010-input -- 0.0000000000e+00
+klee-last/test000009-input -- 0.0000000000e+00
+
+Start symbolic execution 2:
+time klee --allow-external-sym-calls --max-solver-time=2000 --max-time=2000 --search=nurs:covnew wkurtosis-SYMBOLIC-sample.bc myinput
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000009-input -- 0.0000000000e+00
+klee-last/test000008-input -- 0.0000000000e+00
+klee-last/test000007-input -- 0.0000000000e+00
+klee-last/test000006-input -- 0.0000000000e+00
+klee-last/test000005-input -- 0.0000000000e+00
+klee-last/test000004-input -- 0.0000000000e+00
+klee-last/test000003-input -- 0.0000000000e+00
+klee-last/test000002-input -- 0.0000000000e+00
+klee-last/test000001-input -- 0.0000000000e+00
+
+
+Start symbolic execution 3:
+time klee --allow-external-sym-calls --max-solver-time=2000 --max-time=2000 --search=nurs:covnew wkurtosis-SYMBOLIC-sample.bc myinput
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 7.6600243565e-14 [klee-last/test000009-input].
+---top 10 inputs
+klee-last/test000009-input -- 7.6600243565e-14
+klee-last/test000013-input -- 2.3831864652e-14
+klee-last/test000007-input -- 8.7142304057e-16
+klee-last/test000002-input -- 1.7232317459e-16
+klee-last/test000012-input -- 1.5020210688e-16
+klee-last/test000011-input -- 1.5020210688e-16
+klee-last/test000005-input -- 1.5020210688e-16
+klee-last/test000010-input -- 0.0000000000e+00
+klee-last/test000008-input -- 0.0000000000e+00
+klee-last/test000006-input -- 0.0000000000e+00
+Time Out [0]
+
+
+ FPGen log:
+base search : best relative error:1.7733e-12, number of tests:89754, time:00:20:00
+base values = 
+9.690680e-01
+8.438000e+01
+-7.731122e+01
+2.163095e+01
+7.848515e+01
+-1.731613e+01
+-9.376627e+01
+4.759468e+00
+
+
+N=8, S=4, SEED=137 : best relative error:0.0000e+00, number of tests:18, time:00:33:20 [00:36:03]
+N=8, S=2, SEED=765 : best relative error:0.0000e+00, number of tests:9, time:00:33:20 [00:35:46]
+N=8, S=2, SEED=337 : best relative error:7.6600e-14, number of tests:13, time:00:33:20 [00:34:09]
+
+
+ Best Relative Error:  1.7733e-12; Number of tests: 89794, time: 02:00:00 [S:-1, SEED:-1]

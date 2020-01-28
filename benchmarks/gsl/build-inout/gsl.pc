@@ -1,0 +1,11 @@
+prefix=/home/fptesting/gsl-benchmarks/gsl-2.0/build-inout
+exec_prefix=/home/fptesting/gsl-benchmarks/gsl-2.0/build-inout
+libdir=/home/fptesting/gsl-benchmarks/gsl-2.0/build-inout/lib
+includedir=/home/fptesting/gsl-benchmarks/gsl-2.0/build-inout/include
+GSL_CBLAS_LIB=-lgslcblas
+
+Name: GSL
+Description: GNU Scientific Library
+Version: 2.0
+Libs: -L/home/fptesting/gsl-benchmarks/gsl-2.0/build-inout/lib -lgsl ${GSL_CBLAS_LIB} -lm -lm 
+Cflags: -I/home/fptesting/gsl-benchmarks/gsl-2.0/build-inout/include

@@ -1,0 +1,81 @@
+/home/fptesting/FPTesting/benchmarks/summations/pairwise-summation/s3fp
+
+Start RANDOM:
+==== run random ====
+==== S3FP arguments and settings ====
+input bit-width: 32
+n inputs: 32
+input_name: test_input
+LP EXE: ./sequential-64 -> test_output_64
+HP EXE: ./sequential-80 -> test_output_80
+RT_MODE: 1
+TIMEOUT: 7200
+T_RESOURCE: 1
+RSEED: 0
+PARALLELRT: 0
+T_FP_ERROR: 1
+UNIFORM_INPUT: 1
+REL_DELTA: 1.17549e-38
+UNIFORM_INPUTLB: -100
+UNIFORM_INPUTUB: 100
+CHECK UNSTABLE ERROR: 0
+=====================================
+rm: cannot remove 'test_output_64': No such file or directory
+rm: cannot remove 'test_output_80': No such file or directory
+Update Global:  vLP: -444.105  vs  vHP: -444.105 -- 0
+N VALID PLAIN TESTS: 579979
+N PLAIN TESTS: 579979
+N LOCAL UPDATES: 0
+N GLOBAL UPDATES: 1
+Best Relative Error: 0 [0, 0]
+vLP : vHP when Rel. Error = 0 :: -444.105 : -444.105
+vLP : vHP when Rel. Error = 0 :: -444.105 : -444.105
+AVERAGE ERROR: 0
+ERROR VARIANCE: 0
+
+  -RANDOM      Rel. Error: 0, #Inputs: 579979, time: 02:00:00
+
+Start S3FP:
+==== run s3fp ====
+==== S3FP arguments and settings ====
+input bit-width: 32
+n inputs: 32
+input_name: test_input
+LP EXE: ./sequential-64 -> test_output_64
+HP EXE: ./sequential-80 -> test_output_80
+RT_MODE: 2
+TIMEOUT: 7200
+T_RESOURCE: 1
+RSEED: 0
+PARALLELRT: 0
+T_FP_ERROR: 1
+UNIFORM_INPUT: 1
+REL_DELTA: 1.17549e-38
+UNIFORM_INPUTLB: -100
+UNIFORM_INPUTUB: 100
+CHECK UNSTABLE ERROR: 0
+=====================================
+Update Global:  vLP: 1373.11  vs  vHP: 1373.11 -- 0
+N VALID BGRT TESTS: 551594
+N BGRT TESTS: 551594
+N LOCAL UPDATES: 0
+N GLOBAL UPDATES: 1
+Best Relative Error: 0 [0, 0]
+vLP : vHP when Rel. Error = 0 :: 1373.11 : 1373.11
+vLP : vHP when Rel. Error = 0 :: 1373.11 : 1373.11
+AVERAGE ERROR: 0
+ERROR VARIANCE: 0
+
+  -S3FP        Rel. Error: 0, #Inputs: 551594, time: 02:00:00
+
+Start KLEE-FLOAT:
+/home/fptesting/FPTesting/benchmarks/summations/pairwise-summation/klee
+time klee --allow-external-sym-calls --max-solver-time=7200 --max-time=7200 --search=nurs:covnew pairwise-summation-SYMBOLIC.bc
+0.000000
+compute_error.sh klee-last/test*-input ../test/sequential-64 ../test/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000001-input -- 0.0000000000e+00
+
+
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00

@@ -1,0 +1,462 @@
+/home/fptesting/FPTesting/benchmarks/summations
+
+Start symbolic execution 1:
+time klee --allow-external-sym-calls --max-solver-time=1800 --max-time=1800 --search=nurs:covnew pairwise-summation-SYMBOLIC-sample.bc myinput
+10-1-01-0110-1-0111110-1-010-1-0100-1-0-10-0--0110-0--0-0----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------1110-1001-11-01-1-101-0110-111-010--1011000111---110-100-0-111---010---10111-00-1-01101-001100-1--10000-0----00--011011-10--0-00-0110-10---001--1000--11110101-11-0011-0-1-00----010-0--0-0100--10-0--01100--11-0-01--0--10----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  sum=nan
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  sum=nan
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=-3.186461e-25
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=5.000001e+01
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=-inf
+  sum=-inf
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=4.471305e-27
+  sum=9.800365e+01
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-2.509764e-01
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=1.209731e-18
+  sum=inf
+  sum=1.728787e+01
+  sum=2.000000e+00
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=4.471305e-27
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-2.499988e+01
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=4.471305e-27
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=1.328125e+01
+  sum=1.209731e-18
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=4.471305e-27
+  sum=nan
+  sum=7.500153e+01
+  sum=nan
+  sum=nan
+  sum=9.374846e+00
+  sum=inf
+  sum=nan
+  sum=4.471305e-27
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=4.471305e-27
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=-1.033867e-04
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=3.760143e+01
+  sum=1.000000e+02
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=1.350000e+02
+  sum=4.471305e-27
+  sum=9.999762e-01
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=1.484765e+00
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=-4.055036e-15
+  sum=9.900000e+01
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=-5.001527e+01
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=5.400000e+01
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=4.471305e-27
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=1.875072e+00
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=-inf
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=5.000000e+01
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 1.3174400515e-16 [klee-last/test001015-input].
+---top 10 inputs
+klee-last/test001015-input -- 1.3174400515e-16
+klee-last/test000340-input -- 8.8797750725e-17
+klee-last/test000212-input -- 8.8797750725e-17
+klee-last/test000694-input -- 8.8797429886e-17
+klee-last/test000549-input -- 8.8797429886e-17
+klee-last/test001340-input -- 6.8959673410e-17
+klee-last/test001275-input -- 6.8959673410e-17
+klee-last/test001264-input -- 6.8947586932e-17
+klee-last/test001163-input -- 6.8947586932e-17
+klee-last/test001159-input -- 6.8947586932e-17
+
+Start symbolic execution 2:
+time klee --allow-external-sym-calls --max-solver-time=1800 --max-time=1800 --search=nurs:covnew pairwise-summation-SYMBOLIC-sample.bc myinput
+10----------------------------------------------------------------------------------------------  sum=inf
+---------------  sum=nan
+  sum=nan
+  sum=6.374254e-27
+  sum=nan
+  sum=nan
+  sum=nan
+  sum=inf
+  sum=nan
+  sum=6.374254e-27
+  sum=inf
+  sum=nan
+  sum=6.374254e-27
+  sum=1.209731e-18
+  sum=inf
+  sum=inf
+  sum=6.374254e-27
+  sum=6.373471e-27
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 2.7332054696e-17 [klee-last/test000014-input].
+---top 10 inputs
+klee-last/test000014-input -- 2.7332054696e-17
+klee-last/test000018-input -- 0.0000000000e+00
+klee-last/test000017-input -- 0.0000000000e+00
+klee-last/test000016-input -- 0.0000000000e+00
+klee-last/test000015-input -- 0.0000000000e+00
+klee-last/test000013-input -- 0.0000000000e+00
+klee-last/test000012-input -- 0.0000000000e+00
+klee-last/test000011-input -- 0.0000000000e+00
+klee-last/test000010-input -- 0.0000000000e+00
+klee-last/test000009-input -- 0.0000000000e+00
+
+Start symbolic execution 3:
+time klee --allow-external-sym-calls --max-solver-time=1800 --max-time=1800 --search=nurs:covnew pairwise-summation-SYMBOLIC-sample.bc myinput
+-------  sum=8.200532e-27
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000001-input -- 0.0000000000e+00
+
+
+Start symbolic execution 4:
+time klee --allow-external-sym-calls --max-solver-time=1800 --max-time=1800 --search=nurs:covnew pairwise-summation-SYMBOLIC-sample.bc myinput
+-------  sum=9.066374e-27
+compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000001-input -- 0.0000000000e+00
+
+Time Out [0]
+
+
+ FPGen log:
+N=32, S=16, SEED=334 : best relative error:1.3174e-16, number of tests:1512, time:00:30:00 [00:30:15]
+N=32, S=8, SEED=141 : best relative error:2.7332e-17, number of tests:18, time:00:30:00 [00:00:26]
+N=32, S=4, SEED=428 : best relative error:0.0000e+00, number of tests:1, time:00:30:00 [00:00:01]
+N=32, S=4, SEED=491 : best relative error:0.0000e+00, number of tests:1, time:00:30:00 [00:00:00]
+
+
+ Best Relative Error:  1.3174e-16; Number of tests: 1532, time: 02:00:00 [S:16, SEED:334]

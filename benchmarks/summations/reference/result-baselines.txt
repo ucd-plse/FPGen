@@ -1,0 +1,12 @@
+Test recursive-summation:
+  -RANDOM      Rel. Error: 0, #Inputs: 583704, time: 02:00:00
+  -S3FP        Rel. Error: 0, #Inputs: 577227, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test pairwise-summation:
+  -RANDOM      Rel. Error: 0, #Inputs: 579979, time: 02:00:00
+  -S3FP        Rel. Error: 0, #Inputs: 551594, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test compensated-summation:
+  -RANDOM      Rel. Error: 0, #Inputs: 533939, time: 02:00:00
+  -S3FP        Rel. Error: 0, #Inputs: 550118, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00

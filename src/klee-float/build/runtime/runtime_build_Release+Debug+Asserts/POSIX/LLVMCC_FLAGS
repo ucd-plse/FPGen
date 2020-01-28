@@ -1,0 +1,1 @@
+/usr/bin/clang-3.4  -I/home/fptesting/FPTesting/src/klee-float/include -I/home/fptesting/FPTesting/src/klee-float/build/include -emit-llvm -std=gnu89 -D_DEBUG -D_GNU_SOURCE -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS -O2 -g -Wall -Wwrite-strings

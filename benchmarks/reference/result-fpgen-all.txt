@@ -1,0 +1,54 @@
+Test recursive-summation:
+  -FPGen   Rel. Error: 1.0000e+00, #Inputs: 9472, time: 02:00:00
+Test pairwise-summation:
+  -FPGen   Rel. Error: 1.3174e-16, #Inputs: 1532, time: 02:00:00
+Test compensated-summation:
+  -FPGen   Rel. Error: 1.0000e+00, #Inputs: 547, time: 02:00:00
+Test sum:
+  -FPGen   Rel. Error: 1.0000e+00, #Inputs: 43055, time: 02:00:00
+Test 1norm:
+  -FPGen   Rel. Error: 0.0000e+00, #Inputs: 41690, time: 02:00:00
+Test 2norm:
+  -FPGen   Rel. Error: 2.2117e-16, #Inputs: 41039, time: 02:00:00
+Test dot:
+  -FPGen   Rel. Error: 1.9190e-04, #Inputs: 43649, time: 02:00:00
+Test conv:
+  -FPGen   Rel. Error: 2.0446e-04, #Inputs: 42099, time: 02:00:00
+Test mv:
+  -FPGen   Rel. Error: 8.9366e-04, #Inputs: 41180, time: 02:00:00
+Test mm:
+  -FPGen   Rel. Error: 2.5783e-14, #Inputs: 43965, time: 02:00:00
+Test lu:
+  -FPGen   Rel. Error: 2.7327e+00, #Inputs: 40831, time: 02:00:00
+Test qr:
+  -FPGen   Rel. Error: 2.5912e-14, #Inputs: 40944, time: 02:00:00
+Test wmean:
+  -FPGen   Rel. Error: 1.0000e+00, #Inputs: 89844, time: 02:00:00
+Test wvariance:
+  -FPGen   Rel. Error: 7.6280e-02, #Inputs: 89221, time: 02:00:00
+Test wsd:
+  -FPGen   Rel. Error: 3.7439e-02, #Inputs: 88883, time: 02:00:00
+Test wvariance-w:
+  -FPGen   Rel. Error: 2.2858e-12, #Inputs: 90107, time: 02:00:00
+Test wsd-w:
+  -FPGen   Rel. Error: 1.1429e-12, #Inputs: 89057, time: 02:00:00
+Test wtss:
+  -FPGen   Rel. Error: 4.4513e-16, #Inputs: 89318, time: 02:00:00
+Test wtss-m:
+  -FPGen   Rel. Error: 4.4513e-16, #Inputs: 88722, time: 02:00:00
+Test wvariance-m:
+  -FPGen   Rel. Error: 7.6280e-02, #Inputs: 89474, time: 02:00:00
+Test wsd-m:
+  -FPGen   Rel. Error: 3.7439e-02, #Inputs: 88155, time: 02:00:00
+Test wabsdev:
+  -FPGen   Rel. Error: 1.0000e+00, #Inputs: 44041, time: 02:00:00
+Test wskew:
+  -FPGen   Rel. Error: 2.5675e+01, #Inputs: 89715, time: 02:00:00
+Test wkurtosis:
+  -FPGen   Rel. Error: 1.7733e-12, #Inputs: 89794, time: 02:00:00
+Test wabsdev-m:
+  -FPGen   Rel. Error: 1.0000e+00, #Inputs: 44699, time: 02:00:00
+Test wskew-m:
+  -FPGen   Rel. Error: 2.5675e+01, #Inputs: 90165, time: 02:00:00
+Test wkurtosis-m:
+  -FPGen   Rel. Error: 1.7733e-12, #Inputs: 88993, time: 02:00:00

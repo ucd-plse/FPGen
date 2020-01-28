@@ -1,0 +1,5842 @@
+# to unbundle, sh this file (in an empty directory)
+echo copy.c 1>&2
+sed >copy.c <<'//GO.SYSIN DD copy.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-static	char	rcsid[] = "$Id: copy.c,v 1.2 1994/01/13 05:37:14 des Exp $";
+-#include	<stdio.h>
+-#include	"matrix.h"
+-
+-
+-
+-/* _m_copy -- copies matrix into new area */
+-MAT	*_m_copy(in,out,i0,j0)
+-MAT	*in,*out;
+-u_int	i0,j0;
+-{
+-	u_int	i /* ,j */;
+-
+-	if ( in==MNULL )
+-		error(E_NULL,"_m_copy");
+-	if ( in==out )
+-		return (out);
+-	if ( out==MNULL || out->m < in->m || out->n < in->n )
+-		out = m_resize(out,in->m,in->n);
+-
+-	for ( i=i0; i < in->m; i++ )
+-		MEM_COPY(&(in->me[i][j0]),&(out->me[i][j0]),
+-				(in->n - j0)*sizeof(Real));
+-		/* for ( j=j0; j < in->n; j++ )
+-			out->me[i][j] = in->me[i][j]; */
+-
+-	return (out);
+-}
+-
+-/* _v_copy -- copies vector into new area */
+-VEC	*_v_copy(in,out,i0)
+-VEC	*in,*out;
+-u_int	i0;
+-{
+-	/* u_int	i,j; */
+-
+-	if ( in==VNULL )
+-		error(E_NULL,"_v_copy");
+-	if ( in==out )
+-		return (out);
+-	if ( out==VNULL || out->dim < in->dim )
+-		out = v_resize(out,in->dim);
+-
+-	MEM_COPY(&(in->ve[i0]),&(out->ve[i0]),(in->dim - i0)*sizeof(Real));
+-	/* for ( i=i0; i < in->dim; i++ )
+-		out->ve[i] = in->ve[i]; */
+-
+-	return (out);
+-}
+-
+-/* px_copy -- copies permutation 'in' to 'out' */
+-PERM	*px_copy(in,out)
+-PERM	*in,*out;
+-{
+-	/* int	i; */
+-
+-	if ( in == PNULL )
+-		error(E_NULL,"px_copy");
+-	if ( in == out )
+-		return out;
+-	if ( out == PNULL || out->size != in->size )
+-		out = px_resize(out,in->size);
+-
+-	MEM_COPY(in->pe,out->pe,in->size*sizeof(u_int));
+-	/* for ( i = 0; i < in->size; i++ )
+-		out->pe[i] = in->pe[i]; */
+-
+-	return out;
+-}
+-
+-/*
+-	The .._move() routines are for moving blocks of memory around
+-	within Meschach data structures and for re-arranging matrices,
+-	vectors etc.
+-*/
+-
+-/* m_move -- copies selected pieces of a matrix
+-	-- moves the m0 x n0 submatrix with top-left cor-ordinates (i0,j0)
+-	   to the corresponding submatrix of out with top-left co-ordinates
+-	   (i1,j1)
+-	-- out is resized (& created) if necessary */
+-MAT	*m_move(in,i0,j0,m0,n0,out,i1,j1)
+-MAT	*in, *out;
+-int	i0, j0, m0, n0, i1, j1;
+-{
+-    int		i;
+-
+-    if ( ! in )
+-	error(E_NULL,"m_move");
+-    if ( i0 < 0 || j0 < 0 || i1 < 0 || j1 < 0 || m0 < 0 || n0 < 0 ||
+-	 i0+m0 > in->m || j0+n0 > in->n )
+-	error(E_BOUNDS,"m_move");
+-
+-    if ( ! out )
+-	out = m_resize(out,i1+m0,j1+n0);
+-    else if ( i1+m0 > out->m || j1+n0 > out->n )
+-	out = m_resize(out,max(out->m,i1+m0),max(out->n,j1+n0));
+-
+-    for ( i = 0; i < m0; i++ )
+-	MEM_COPY(&(in->me[i0+i][j0]),&(out->me[i1+i][j1]),
+-		 n0*sizeof(Real));
+-
+-    return out;
+-}
+-
+-/* v_move -- copies selected pieces of a vector
+-	-- moves the length dim0 subvector with initial index i0
+-	   to the corresponding subvector of out with initial index i1
+-	-- out is resized if necessary */
+-VEC	*v_move(in,i0,dim0,out,i1)
+-VEC	*in, *out;
+-int	i0, dim0, i1;
+-{
+-    if ( ! in )
+-	error(E_NULL,"v_move");
+-    if ( i0 < 0 || dim0 < 0 || i1 < 0 ||
+-	 i0+dim0 > in->dim )
+-	error(E_BOUNDS,"v_move");
+-
+-    if ( (! out) || i1+dim0 > out->dim )
+-	out = v_resize(out,i1+dim0);
+-
+-    MEM_COPY(&(in->ve[i0]),&(out->ve[i1]),dim0*sizeof(Real));
+-
+-    return out;
+-}
+-
+-/* mv_move -- copies selected piece of matrix to a vector
+-	-- moves the m0 x n0 submatrix with top-left co-ordinate (i0,j0) to
+-	   the subvector with initial index i1 (and length m0*n0)
+-	-- rows are copied contiguously
+-	-- out is resized if necessary */
+-VEC	*mv_move(in,i0,j0,m0,n0,out,i1)
+-MAT	*in;
+-VEC	*out;
+-int	i0, j0, m0, n0, i1;
+-{
+-    int		dim1, i;
+-
+-    if ( ! in )
+-	error(E_NULL,"mv_move");
+-    if ( i0 < 0 || j0 < 0 || m0 < 0 || n0 < 0 || i1 < 0 ||
+-	 i0+m0 > in->m || j0+n0 > in->n )
+-	error(E_BOUNDS,"mv_move");
+-
+-    dim1 = m0*n0;
+-    if ( (! out) || i1+dim1 > out->dim )
+-	out = v_resize(out,i1+dim1);
+-
+-    for ( i = 0; i < m0; i++ )
+-	MEM_COPY(&(in->me[i0+i][j0]),&(out->ve[i1+i*n0]),n0*sizeof(Real));
+-
+-    return out;
+-}
+-
+-/* vm_move -- copies selected piece of vector to a matrix
+-	-- moves the subvector with initial index i0 and length m1*n1 to
+-	   the m1 x n1 submatrix with top-left co-ordinate (i1,j1)
+-        -- copying is done by rows
+-	-- out is resized if necessary */
+-MAT	*vm_move(in,i0,out,i1,j1,m1,n1)
+-VEC	*in;
+-MAT	*out;
+-int	i0, i1, j1, m1, n1;
+-{
+-    int		dim0, i;
+-
+-    if ( ! in )
+-	error(E_NULL,"vm_move");
+-    if ( i0 < 0 || i1 < 0 || j1 < 0 || m1 < 0 || n1 < 0 ||
+-	 i0+m1*n1 > in->dim )
+-	error(E_BOUNDS,"vm_move");
+-
+-    if ( ! out )
+-	out = m_resize(out,i1+m1,j1+n1);
+-    else
+-	out = m_resize(out,max(i1+m1,out->m),max(j1+n1,out->n));
+-
+-    dim0 = m1*n1;
+-    for ( i = 0; i < m1; i++ )
+-	MEM_COPY(&(in->ve[i0+i*n1]),&(out->me[i1+i][j1]),n1*sizeof(Real));
+-
+-    return out;
+-}
+//GO.SYSIN DD copy.c
+echo err.c 1>&2
+sed >err.c <<'//GO.SYSIN DD err.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Stewart & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/*
+-  File with basic error-handling operations
+-  Based on previous version on Zilog
+-  System 8000 setret() etc.
+-  Ported to Pyramid 9810 late 1987
+-  */
+-
+-static	char	rcsid[] = "$Id: err.c,v 1.6 1995/01/30 14:49:14 des Exp $";
+-
+-#include	<stdio.h>
+-#include	<setjmp.h>
+-#include	<ctype.h>
+-#include        "err.h"
+-
+-
+-#ifdef SYSV
+-/* AT&T System V */
+-#include	<sys/signal.h>
+-#else
+-/* something else -- assume BSD or ANSI C */
+-#include	<signal.h>
+-#endif
+-
+-
+-
+-#define		FALSE	0
+-#define		TRUE	1
+-
+-#define	EF_EXIT		0
+-#define	EF_ABORT	1
+-#define	EF_JUMP		2
+-#define	EF_SILENT	3
+-
+-/* The only error caught in this file! */
+-#define	E_SIGNAL	16
+-
+-static	char	*err_mesg[] =
+-{	  "unknown error",			    /* 0 */
+-	  "sizes of objects don't match",	    /* 1 */
+-	  "index out of bounds",		    /* 2 */
+-	  "can't allocate memory",		    /* 3 */
+-	  "singular matrix",			    /* 4 */
+-	  "matrix not positive definite",	    /* 5 */
+-	  "incorrect format input",		    /* 6 */
+-	  "bad input file/device",		    /* 7 */
+-	  "NULL objects passed",		    /* 8 */
+-	  "matrix not square",			    /* 9 */
+-	  "object out of range",		    /* 10 */
+-	  "can't do operation in situ for non-square matrix",   /* 11 */
+-	  "can't do operation in situ",		    /* 12 */
+-	  "excessive number of iterations",	    /* 13 */
+-	  "convergence criterion failed",	    /* 14 */
+-	  "bad starting value",			    /* 15 */
+-	  "floating exception",			    /* 16 */
+-	  "internal inconsistency (data structure)",/* 17 */
+-	  "unexpected end-of-file",		    /* 18 */
+-	  "shared vectors (cannot release them)",   /* 19 */  
+-	  "negative argument",			    /* 20 */
+-	  "cannot overwrite object",                /* 21 */
+-	  "breakdown in iterative method"           /* 22 */
+-	 };
+-
+-#define	MAXERR	(sizeof(err_mesg)/sizeof(char *))
+-
+-static char *warn_mesg[] = {
+-   "unknown warning",				  /* 0 */
+-   "wrong type number (use macro TYPE_*)",	  /* 1 */
+-   "no corresponding mem_stat_mark",		  /* 2 */
+-   "computed norm of a residual is less than 0",  /* 3 */
+-   "resizing a shared vector"			  /* 4 */
+-};
+-
+-#define MAXWARN  (sizeof(warn_mesg)/sizeof(char *))
+-
+-
+-
+-#define	MAX_ERRS	100
+-
+-jmp_buf	restart;
+-
+-
+-/* array of pointers to lists of errors */
+-
+-typedef struct {
+-   char **listp;    /* pointer to a list of errors */
+-   unsigned len;    /* length of the list */
+-   unsigned warn;   /* =FALSE - errors, =TRUE - warnings */
+-}  Err_list;
+-
+-static Err_list     err_list[ERR_LIST_MAX_LEN] = {
+- {err_mesg,MAXERR,FALSE},	/* basic errors list */
+- {warn_mesg,MAXWARN,TRUE}	/* basic warnings list */
+-};
+-
+-
+-static int err_list_end = 2;   /* number of elements in err_list */
+-
+-/* attach a new list of errors pointed by err_ptr
+-   or change a previous one;
+-   list_len is the number of elements in the list;
+-   list_num is the list number;
+-   warn == FALSE - errors (stop the program),
+-   warn == TRUE - warnings (continue the program);
+-   Note: lists numbered 0 and 1 are attached automatically,
+-   you do not need to do it
+-   */
+-int err_list_attach(list_num, list_len,err_ptr,warn)
+-int list_num, list_len, warn;
+-char **err_ptr;
+-{
+-   if (list_num < 0 || list_len <= 0 ||
+-       err_ptr == (char **)NULL) 
+-     return -1;
+-   
+-   if (list_num >= ERR_LIST_MAX_LEN) {
+-	fprintf(stderr,"\n file \"%s\": %s %s\n",
+-		"err.c","increase the value of ERR_LIST_MAX_LEN",
+-		"in matrix.h and zmatdef.h");
+-	if ( ! isatty(fileno(stdout)) )
+-	  fprintf(stderr,"\n file \"%s\": %s %s\n",
+-		  "err.c","increase the value of ERR_LIST_MAX_LEN",
+-		  "in matrix.h and zmatdef.h");
+-	printf("Exiting program\n");
+-	exit(0);
+-     }
+-
+-   if (err_list[list_num].listp != (char **)NULL &&
+-       err_list[list_num].listp != err_ptr)
+-     free((char *)err_list[list_num].listp);
+-   err_list[list_num].listp = err_ptr;
+-   err_list[list_num].len = list_len;
+-   err_list[list_num].warn = warn;
+-   err_list_end = list_num+1;
+-   
+-   return list_num;
+-}
+-
+-
+-/* release the error list numbered list_num */
+-int err_list_free(list_num)
+-int list_num;
+-{
+-   if (list_num < 0 || list_num >= err_list_end) return -1;
+-   if (err_list[list_num].listp != (char **)NULL) {
+-      err_list[list_num].listp = (char **)NULL;
+-      err_list[list_num].len = 0;
+-      err_list[list_num].warn = 0;
+-   }
+-   return 0;
+-}
+-
+-
+-/* check if list_num is attached;
+-   return FALSE if not;
+-   return TRUE if yes
+-   */
+-int err_is_list_attached(list_num)
+-int list_num;
+-{
+-   if (list_num < 0 || list_num >= err_list_end)
+-     return FALSE;
+-   
+-   if (err_list[list_num].listp != (char **)NULL)
+-     return TRUE;
+-   
+-   return FALSE;
+-}
+-
+-/* other local variables */
+-
+-static	int	err_flag = EF_EXIT, num_errs = 0, cnt_errs = 1;
+-
+-/* set_err_flag -- sets err_flag -- returns old err_flag */
+-int	set_err_flag(flag)
+-int	flag;
+-{
+-   int	tmp;
+-   
+-   tmp = err_flag;
+-   err_flag = flag;
+-   return tmp;
+-}
+-
+-/* count_errs -- sets cnt_errs (TRUE/FALSE) & returns old value */
+-int	count_errs(flag)
+-int	flag;
+-{
+-   int	tmp;
+-   
+-   tmp = cnt_errs;
+-   cnt_errs = flag;
+-   return tmp;
+-}
+-
+-/* ev_err -- reports error (err_num) in file "file" at line "line_num" and
+-   returns to user error handler;
+-   list_num is an error list number (0 is the basic list 
+-   pointed by err_mesg, 1 is the basic list of warnings)
+- */
+-int	ev_err(file,err_num,line_num,fn_name,list_num)
+-char	*file, *fn_name;
+-int	err_num, line_num,list_num;
+-{
+-   int	num;
+-   
+-   if ( err_num < 0 ) err_num = 0;
+-   
+-   if (list_num < 0 || list_num >= err_list_end ||
+-       err_list[list_num].listp == (char **)NULL) {
+-      fprintf(stderr,
+-	      "\n Not (properly) attached list of errors: list_num = %d\n",
+-	      list_num);
+-      fprintf(stderr," Call \"err_list_attach\" in your program\n");
+-      if ( ! isatty(fileno(stdout)) ) {
+-	 fprintf(stderr,
+-		 "\n Not (properly) attached list of errors: list_num = %d\n",
+-		 list_num);
+-	 fprintf(stderr," Call \"err_list_attach\" in your program\n");
+-      }
+-      printf("\nExiting program\n");
+-      exit(0);
+-   }
+-   
+-   num = err_num;
+-   if ( num >= err_list[list_num].len ) num = 0;
+-   
+-   if ( cnt_errs && ++num_errs >= MAX_ERRS )	/* too many errors */
+-   {
+-      fprintf(stderr,"\n\"%s\", line %d: %s in function %s()\n",
+-	      file,line_num,err_list[list_num].listp[num],
+-	      isascii(*fn_name) ? fn_name : "???");
+-      if ( ! isatty(fileno(stdout)) )
+-	fprintf(stdout,"\n\"%s\", line %d: %s in function %s()\n",
+-		file,line_num,err_list[list_num].listp[num],
+-		isascii(*fn_name) ? fn_name : "???");
+-      printf("Sorry, too many errors: %d\n",num_errs);
+-      printf("Exiting program\n");
+-      exit(0);
+-   }
+-   if ( err_list[list_num].warn )
+-       switch ( err_flag )
+-       {
+-	   case EF_SILENT: break;
+-	   default:
+-	   fprintf(stderr,"\n\"%s\", line %d: %s in function %s()\n\n",
+-		   file,line_num,err_list[list_num].listp[num],
+-		   isascii(*fn_name) ? fn_name : "???");
+-	   if ( ! isatty(fileno(stdout)) )
+-	       fprintf(stdout,"\n\"%s\", line %d: %s in function %s()\n\n",
+-		       file,line_num,err_list[list_num].listp[num],
+-		       isascii(*fn_name) ? fn_name : "???");
+-	   break;
+-       }
+-   else
+-       switch ( err_flag )
+-       {
+-	   case EF_SILENT:
+-	   longjmp(restart,(err_num==0)? -1 : err_num);
+-	   break;
+-	   case EF_ABORT:
+-	   fprintf(stderr,"\n\"%s\", line %d: %s in function %s()\n",
+-		   file,line_num,err_list[list_num].listp[num],
+-		   isascii(*fn_name) ? fn_name : "???");
+-	   if ( ! isatty(fileno(stdout)) )
+-	       fprintf(stdout,"\n\"%s\", line %d: %s in function %s()\n",
+-		       file,line_num,err_list[list_num].listp[num],
+-		       isascii(*fn_name) ? fn_name : "???");
+-	   abort();
+-	   break;
+-	   case EF_JUMP:
+-	   fprintf(stderr,"\n\"%s\", line %d: %s in function %s()\n",
+-		   file,line_num,err_list[list_num].listp[num],
+-		   isascii(*fn_name) ? fn_name : "???");
+-	   if ( ! isatty(fileno(stdout)) )
+-	       fprintf(stdout,"\n\"%s\", line %d: %s in function %s()\n",
+-		       file,line_num,err_list[list_num].listp[num],
+-		       isascii(*fn_name) ? fn_name : "???");
+-	   longjmp(restart,(err_num==0)? -1 : err_num);
+-	   break;
+-	   default:
+-	   fprintf(stderr,"\n\"%s\", line %d: %s in function %s()\n\n",
+-		   file,line_num,err_list[list_num].listp[num],
+-		   isascii(*fn_name) ? fn_name : "???");
+-	   if ( ! isatty(fileno(stdout)) )
+-	       fprintf(stdout,"\n\"%s\", line %d: %s in function %s()\n\n",
+-		       file,line_num,err_list[list_num].listp[num],
+-		       isascii(*fn_name) ? fn_name : "???");
+-	   
+-	   break;
+-       }
+-   
+-   /* ensure exit if fall through */
+-   if ( ! err_list[list_num].warn )  exit(0);
+-
+-   return 0;
+-}
+-
+-/* float_error -- catches floating arithmetic signals */
+-static void	float_error(num)
+-int	num;
+-{
+-   signal(SIGFPE,float_error);
+-   /* fprintf(stderr,"SIGFPE: signal #%d\n",num); */
+-   /* fprintf(stderr,"errno = %d\n",errno); */
+-   ev_err("???.c",E_SIGNAL,0,"???",0);
+-}
+-
+-/* catch_signal -- sets up float_error() to catch SIGFPE's */
+-void	catch_FPE()
+-{
+-   signal(SIGFPE,float_error);
+-}
+-
+-
+//GO.SYSIN DD err.c
+echo matrixio.c 1>&2
+sed >matrixio.c <<'//GO.SYSIN DD matrixio.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/* 1.6 matrixio.c 11/25/87 */
+-
+-
+-#include        <stdio.h>
+-#include        <ctype.h>
+-#include        "matrix.h"
+-
+-static char rcsid[] = "$Id: matrixio.c,v 1.4 1994/01/13 05:31:10 des Exp $";
+-
+-
+-/* local variables */
+-static char line[MAXLINE];
+-
+-
+-/**************************************************************************
+-  Input routines
+-  **************************************************************************/
+-/* skipjunk -- skips white spaces and strings of the form #....\n
+-   Here .... is a comment string */
+-int     skipjunk(fp)
+-FILE    *fp;
+-{
+-     int        c;
+-     
+-     for ( ; ; )        /* forever do... */
+-     {
+-	  /* skip blanks */
+-	  do
+-	       c = getc(fp);
+-	  while ( isspace(c) );
+-	  
+-	  /* skip comments (if any) */
+-	  if ( c == '#' )
+-	       /* yes it is a comment (line) */
+-	       while ( (c=getc(fp)) != '\n' )
+-		    ;
+-	  else
+-	  {
+-	       ungetc(c,fp);
+-	       break;
+-	  }
+-     }
+-     return 0;
+-}
+-
+-MAT     *m_finput(fp,a)
+-FILE    *fp;
+-MAT     *a;
+-{
+-     MAT        *im_finput(),*bm_finput();
+-     
+-     if ( isatty(fileno(fp)) )
+-	  return im_finput(fp,a);
+-     else
+-	  return bm_finput(fp,a);
+-}
+-
+-/* im_finput -- interactive input of matrix */
+-MAT     *im_finput(fp,mat)
+-FILE    *fp;
+-MAT     *mat;
+-{
+-     char       c;
+-     u_int      i, j, m, n, dynamic;
+-     /* dynamic set to TRUE if memory allocated here */
+-     
+-     /* get matrix size */
+-     if ( mat != (MAT *)NULL && mat->m<MAXDIM && mat->n<MAXDIM )
+-     {  m = mat->m;     n = mat->n;     dynamic = FALSE;        }
+-     else
+-     {
+-	  dynamic = TRUE;
+-	  do
+-	  {
+-	       fprintf(stderr,"Matrix: rows cols:");
+-	       if ( fgets(line,MAXLINE,fp)==NULL )
+-		    error(E_INPUT,"im_finput");
+-	  } while ( sscanf(line,"%u%u",&m,&n)<2 || m>MAXDIM || n>MAXDIM );
+-	  mat = m_get(m,n);
+-     }
+-     
+-     /* input elements */
+-     for ( i=0; i<m; i++ )
+-     {
+-     redo:
+-	  fprintf(stderr,"row %u:\n",i);
+-	  for ( j=0; j<n; j++ )
+-	       do
+-	       {
+-	       redo2:
+-		    fprintf(stderr,"entry (%u,%u): ",i,j);
+-		    if ( !dynamic )
+-			 fprintf(stderr,"old %14.9g new: ",
+-				 mat->me[i][j]);
+-		    if ( fgets(line,MAXLINE,fp)==NULL )
+-			 error(E_INPUT,"im_finput");
+-		    if ( (*line == 'b' || *line == 'B') && j > 0 )
+-		    {   j--;    dynamic = FALSE;        goto redo2;     }
+-		    if ( (*line == 'f' || *line == 'F') && j < n-1 )
+-		    {   j++;    dynamic = FALSE;        goto redo2;     }
+-#if REAL == DOUBLE
+-	       } while ( *line=='\0' || sscanf(line,"%lf",&mat->me[i][j])<1 );
+-#elif REAL == FLOAT
+-	       } while ( *line=='\0' || sscanf(line,"%f",&mat->me[i][j])<1 );
+-#endif
+-	  fprintf(stderr,"Continue: ");
+-	  fscanf(fp,"%c",&c);
+-	  if ( c == 'n' || c == 'N' )
+-	  {    dynamic = FALSE;                 goto redo;      }
+-	  if ( (c == 'b' || c == 'B') /* && i > 0 */ )
+-	  {     if ( i > 0 )
+-		    i--;
+-		dynamic = FALSE;        goto redo;
+-	  }
+-     }
+-     
+-     return (mat);
+-}
+-
+-/* bm_finput -- batch-file input of matrix */
+-MAT     *bm_finput(fp,mat)
+-FILE    *fp;
+-MAT     *mat;
+-{
+-     u_int      i,j,m,n,dummy;
+-     int        io_code;
+-     
+-     /* get dimension */
+-     skipjunk(fp);
+-     if ((io_code=fscanf(fp," Matrix: %u by %u",&m,&n)) < 2 ||
+-	 m>MAXDIM || n>MAXDIM )
+-	  error(io_code==EOF ? E_EOF : E_FORMAT,"bm_finput");
+-     
+-     /* allocate memory if necessary */
+-     if ( mat==(MAT *)NULL )
+-	  mat = m_resize(mat,m,n);
+-     
+-     /* get entries */
+-     for ( i=0; i<m; i++ )
+-     {
+-	  skipjunk(fp);
+-	  if ( fscanf(fp," row %u:",&dummy) < 1 )
+-	       error(E_FORMAT,"bm_finput");
+-	  for ( j=0; j<n; j++ )
+-#if REAL == DOUBLE
+-	       if ((io_code=fscanf(fp,"%lf",&mat->me[i][j])) < 1 )
+-#elif REAL == FLOAT
+-	       if ((io_code=fscanf(fp,"%f",&mat->me[i][j])) < 1 )
+-#endif
+-		    error(io_code==EOF ? 7 : 6,"bm_finput");
+-     }
+-     
+-     return (mat);
+-}
+-
+-PERM    *px_finput(fp,px)
+-FILE    *fp;
+-PERM    *px;
+-{
+-     PERM       *ipx_finput(),*bpx_finput();
+-     
+-     if ( isatty(fileno(fp)) )
+-	  return ipx_finput(fp,px);
+-     else
+-	  return bpx_finput(fp,px);
+-}
+-
+-
+-/* ipx_finput -- interactive input of permutation */
+-PERM    *ipx_finput(fp,px)
+-FILE    *fp;
+-PERM    *px;
+-{
+-     u_int      i,j,size,dynamic; /* dynamic set if memory allocated here */
+-     u_int      entry,ok;
+-     
+-     /* get permutation size */
+-     if ( px!=(PERM *)NULL && px->size<MAXDIM )
+-     {  size = px->size;        dynamic = FALSE;        }
+-     else
+-     {
+-	  dynamic = TRUE;
+-	  do
+-	  {
+-	       fprintf(stderr,"Permutation: size: ");
+-	       if ( fgets(line,MAXLINE,fp)==NULL )
+-		    error(E_INPUT,"ipx_finput");
+-	  } while ( sscanf(line,"%u",&size)<1 || size>MAXDIM );
+-	  px = px_get(size);
+-     }
+-     
+-     /* get entries */
+-     i = 0;
+-     while ( i<size )
+-     {
+-	  /* input entry */
+-	  do
+-	  {
+-	  redo:
+-	       fprintf(stderr,"entry %u: ",i);
+-	       if ( !dynamic )
+-		    fprintf(stderr,"old: %u->%u new: ",
+-			    i,px->pe[i]);
+-	       if ( fgets(line,MAXLINE,fp)==NULL )
+-		    error(E_INPUT,"ipx_finput");
+-	       if ( (*line == 'b' || *line == 'B') && i > 0 )
+-	       {        i--;    dynamic = FALSE;        goto redo;      }
+-	  } while ( *line=='\0' || sscanf(line,"%u",&entry) < 1 );
+-	  /* check entry */
+-	  ok = (entry < size);
+-	  for ( j=0; j<i; j++ )
+-	       ok &= (entry != px->pe[j]);
+-	  if ( ok )
+-	  {
+-	       px->pe[i] = entry;
+-	       i++;
+-	  }
+-     }
+-     
+-     return (px);
+-}
+-
+-/* bpx_finput -- batch-file input of permutation */
+-PERM    *bpx_finput(fp,px)
+-FILE    *fp;
+-PERM    *px;
+-{
+-     u_int      i,j,size,entry,ok;
+-     int        io_code;
+-     
+-     /* get size of permutation */
+-     skipjunk(fp);
+-     if ((io_code=fscanf(fp," Permutation: size:%u",&size)) < 1 ||
+-	 size>MAXDIM )
+-	  error(io_code==EOF ? 7 : 6,"bpx_finput");
+-     
+-     /* allocate memory if necessary */
+-     if ( px==(PERM *)NULL || px->size<size )
+-	  px = px_resize(px,size);
+-     
+-     /* get entries */
+-     skipjunk(fp);
+-     i = 0;
+-     while ( i<size )
+-     {
+-	  /* input entry */
+-	  if ((io_code=fscanf(fp,"%*u -> %u",&entry)) < 1 )
+-	       error(io_code==EOF ? 7 : 6,"bpx_finput");
+-	  /* check entry */
+-	  ok = (entry < size);
+-	  for ( j=0; j<i; j++ )
+-	       ok &= (entry != px->pe[j]);
+-	  if ( ok )
+-	  {
+-	       px->pe[i] = entry;
+-	       i++;
+-	  }
+-	  else
+-	       error(E_BOUNDS,"bpx_finput");
+-     }
+-     
+-     return (px);
+-}
+-
+-
+-VEC     *v_finput(fp,x)
+-FILE    *fp;
+-VEC     *x;
+-{
+-     VEC        *ifin_vec(),*bfin_vec();
+-     
+-     if ( isatty(fileno(fp)) )
+-	  return ifin_vec(fp,x);
+-     else
+-	  return bfin_vec(fp,x);
+-}
+-
+-/* ifin_vec -- interactive input of vector */
+-VEC     *ifin_vec(fp,vec)
+-FILE    *fp;
+-VEC     *vec;
+-{
+-     u_int      i,dim,dynamic;  /* dynamic set if memory allocated here */
+-     
+-     /* get vector dimension */
+-     if ( vec != (VEC *)NULL && vec->dim<MAXDIM )
+-     {  dim = vec->dim; dynamic = FALSE;        }
+-     else
+-     {
+-	  dynamic = TRUE;
+-	  do
+-	  {
+-	       fprintf(stderr,"Vector: dim: ");
+-	       if ( fgets(line,MAXLINE,fp)==NULL )
+-		    error(E_INPUT,"ifin_vec");
+-	  } while ( sscanf(line,"%u",&dim)<1 || dim>MAXDIM );
+-	  vec = v_get(dim);
+-     }
+-     
+-     /* input elements */
+-     for ( i=0; i<dim; i++ )
+-	  do
+-	  {
+-	  redo:
+-	       fprintf(stderr,"entry %u: ",i);
+-	       if ( !dynamic )
+-		    fprintf(stderr,"old %14.9g new: ",vec->ve[i]);
+-	       if ( fgets(line,MAXLINE,fp)==NULL )
+-		    error(E_INPUT,"ifin_vec");
+-	       if ( (*line == 'b' || *line == 'B') && i > 0 )
+-	       {        i--;    dynamic = FALSE;        goto redo;         }
+-	       if ( (*line == 'f' || *line == 'F') && i < dim-1 )
+-	       {        i++;    dynamic = FALSE;        goto redo;         }
+-#if REAL == DOUBLE
+-	  } while ( *line=='\0' || sscanf(line,"%lf",&vec->ve[i]) < 1 );
+-#elif REAL == FLOAT
+-          } while ( *line=='\0' || sscanf(line,"%f",&vec->ve[i]) < 1 );
+-#endif
+-     
+-     return (vec);
+-}
+-
+-/* bfin_vec -- batch-file input of vector */
+-VEC     *bfin_vec(fp,vec)
+-FILE    *fp;
+-VEC     *vec;
+-{
+-     u_int      i,dim;
+-     int        io_code;
+-     
+-     /* get dimension */
+-     skipjunk(fp);
+-     if ((io_code=fscanf(fp," Vector: dim:%u",&dim)) < 1 ||
+-	 dim>MAXDIM )
+-	  error(io_code==EOF ? 7 : 6,"bfin_vec");
+-     
+-     /* allocate memory if necessary */
+-     if ( vec==(VEC *)NULL )
+-	  vec = v_resize(vec,dim);
+-     
+-     /* get entries */
+-     skipjunk(fp);
+-     for ( i=0; i<dim; i++ )
+-#if REAL == DOUBLE
+-	  if ((io_code=fscanf(fp,"%lf",&vec->ve[i])) < 1 )
+-#elif REAL == FLOAT
+-	  if ((io_code=fscanf(fp,"%f",&vec->ve[i])) < 1 )
+-#endif
+-	       error(io_code==EOF ? 7 : 6,"bfin_vec");
+-     
+-     return (vec);
+-}
+-
+-/**************************************************************************
+-  Output routines
+-  **************************************************************************/
+-static char    *format = "%14.9g ";
+-
+-char	*setformat(f_string)
+-char    *f_string;
+-{
+-    char	*old_f_string;
+-    old_f_string = format;
+-    if ( f_string != (char *)NULL && *f_string != '\0' )
+-	format = f_string;
+-
+-    return old_f_string;
+-}
+-
+-void    m_foutput(fp,a)
+-FILE    *fp;
+-MAT     *a;
+-{
+-     u_int      i, j, tmp;
+-     
+-     if ( a == (MAT *)NULL )
+-     {  fprintf(fp,"Matrix: NULL\n");   return;         }
+-     fprintf(fp,"Matrix: %d by %d\n",a->m,a->n);
+-     if ( a->me == (Real **)NULL )
+-     {  fprintf(fp,"NULL\n");           return;         }
+-     for ( i=0; i<a->m; i++ )   /* for each row... */
+-     {
+-	  fprintf(fp,"row %u: ",i);
+-	  for ( j=0, tmp=2; j<a->n; j++, tmp++ )
+-	  {             /* for each col in row... */
+-	       fprintf(fp,format,a->me[i][j]);
+-	       if ( ! (tmp % 5) )       putc('\n',fp);
+-	  }
+-	  if ( tmp % 5 != 1 )   putc('\n',fp);
+-     }
+-}
+-
+-void    px_foutput(fp,px)
+-FILE    *fp;
+-PERM    *px;
+-{
+-     u_int      i;
+-     
+-     if ( px == (PERM *)NULL )
+-     {  fprintf(fp,"Permutation: NULL\n");      return;         }
+-     fprintf(fp,"Permutation: size: %u\n",px->size);
+-     if ( px->pe == (u_int *)NULL )
+-     {  fprintf(fp,"NULL\n");   return;         }
+-     for ( i=0; i<px->size; i++ )
+-	if ( ! (i % 8) && i != 0 )
+-	  fprintf(fp,"\n  %u->%u ",i,px->pe[i]);
+-	else
+-	  fprintf(fp,"%u->%u ",i,px->pe[i]);
+-     fprintf(fp,"\n");
+-}
+-
+-void    v_foutput(fp,x)
+-FILE    *fp;
+-VEC     *x;
+-{
+-     u_int      i, tmp;
+-     
+-     if ( x == (VEC *)NULL )
+-     {  fprintf(fp,"Vector: NULL\n");   return;         }
+-     fprintf(fp,"Vector: dim: %d\n",x->dim);
+-     if ( x->ve == (Real *)NULL )
+-     {  fprintf(fp,"NULL\n");   return;         }
+-     for ( i=0, tmp=0; i<x->dim; i++, tmp++ )
+-     {
+-	  fprintf(fp,format,x->ve[i]);
+-	  if ( tmp % 5 == 4 )   putc('\n',fp);
+-     }
+-     if ( tmp % 5 != 0 )        putc('\n',fp);
+-}
+-
+-
+-void    m_dump(fp,a)
+-FILE    *fp;
+-MAT     *a;
+-{
+-	u_int   i, j, tmp;
+-     
+-     if ( a == (MAT *)NULL )
+-     {  fprintf(fp,"Matrix: NULL\n");   return;         }
+-     fprintf(fp,"Matrix: %d by %d @ 0x%lx\n",a->m,a->n,(long)a);
+-     fprintf(fp,"\tmax_m = %d, max_n = %d, max_size = %d\n",
+-	     a->max_m, a->max_n, a->max_size);
+-     if ( a->me == (Real **)NULL )
+-     {  fprintf(fp,"NULL\n");           return;         }
+-     fprintf(fp,"a->me @ 0x%lx\n",(long)(a->me));
+-     fprintf(fp,"a->base @ 0x%lx\n",(long)(a->base));
+-     for ( i=0; i<a->m; i++ )   /* for each row... */
+-     {
+-	  fprintf(fp,"row %u: @ 0x%lx ",i,(long)(a->me[i]));
+-	  for ( j=0, tmp=2; j<a->n; j++, tmp++ )
+-	  {             /* for each col in row... */
+-	       fprintf(fp,format,a->me[i][j]);
+-	       if ( ! (tmp % 5) )       putc('\n',fp);
+-	  }
+-	  if ( tmp % 5 != 1 )   putc('\n',fp);
+-     }
+-}
+-
+-void    px_dump(fp,px)
+-FILE    *fp;
+-PERM    *px;
+-{
+-     u_int      i;
+-     
+-     if ( ! px )
+-     {  fprintf(fp,"Permutation: NULL\n");      return;         }
+-     fprintf(fp,"Permutation: size: %u @ 0x%lx\n",px->size,(long)(px));
+-     if ( ! px->pe )
+-     {  fprintf(fp,"NULL\n");   return;         }
+-     fprintf(fp,"px->pe @ 0x%lx\n",(long)(px->pe));
+-     for ( i=0; i<px->size; i++ )
+-	  fprintf(fp,"%u->%u ",i,px->pe[i]);
+-     fprintf(fp,"\n");
+-}
+-
+-
+-void    v_dump(fp,x)
+-FILE    *fp;
+-VEC     *x;
+-{
+-     u_int      i, tmp;
+-     
+-     if ( ! x )
+-     {  fprintf(fp,"Vector: NULL\n");   return;         }
+-     fprintf(fp,"Vector: dim: %d @ 0x%lx\n",x->dim,(long)(x));
+-     if ( ! x->ve )
+-     {  fprintf(fp,"NULL\n");   return;         }
+-     fprintf(fp,"x->ve @ 0x%lx\n",(long)(x->ve));
+-     for ( i=0, tmp=0; i<x->dim; i++, tmp++ )
+-     {
+-	  fprintf(fp,format,x->ve[i]);
+-	  if ( tmp % 5 == 4 )   putc('\n',fp);
+-     }
+-     if ( tmp % 5 != 0 )        putc('\n',fp);
+-}
+-
+//GO.SYSIN DD matrixio.c
+echo memory.c 1>&2
+sed >memory.c <<'//GO.SYSIN DD memory.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/* memory.c 1.3 11/25/87 */
+-
+-#include 	"matrix.h"
+-
+-
+-static	char	rcsid[] = "$Id: memory.c,v 1.13 1994/04/05 02:10:37 des Exp $";
+-
+-/* m_get -- gets an mxn matrix (in MAT form) by dynamic memory allocation */
+-MAT	*m_get(m,n)
+-int	m,n;
+-{
+-   MAT	*matrix;
+-   int	i;
+-   
+-   if (m < 0 || n < 0)
+-     error(E_NEG,"m_get");
+-
+-   if ((matrix=NEW(MAT)) == (MAT *)NULL )
+-     error(E_MEM,"m_get");
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_MAT,0,sizeof(MAT));
+-      mem_numvar(TYPE_MAT,1);
+-   }
+-   
+-   matrix->m = m;		matrix->n = matrix->max_n = n;
+-   matrix->max_m = m;	matrix->max_size = m*n;
+-#ifndef SEGMENTED
+-   if ((matrix->base = NEW_A(m*n,Real)) == (Real *)NULL )
+-   {
+-      free(matrix);
+-      error(E_MEM,"m_get");
+-   }
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_MAT,0,m*n*sizeof(Real));
+-   }
+-#else
+-   matrix->base = (Real *)NULL;
+-#endif
+-   if ((matrix->me = (Real **)calloc(m,sizeof(Real *))) == 
+-       (Real **)NULL )
+-   {	free(matrix->base);	free(matrix);
+-	error(E_MEM,"m_get");
+-     }
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_MAT,0,m*sizeof(Real *));
+-   }
+-   
+-#ifndef SEGMENTED
+-   /* set up pointers */
+-   for ( i=0; i<m; i++ )
+-     matrix->me[i] = &(matrix->base[i*n]);
+-#else
+-   for ( i = 0; i < m; i++ )
+-     if ( (matrix->me[i]=NEW_A(n,Real)) == (Real *)NULL )
+-       error(E_MEM,"m_get");
+-     else if (mem_info_is_on()) {
+-	mem_bytes(TYPE_MAT,0,n*sizeof(Real));
+-       }
+-#endif
+-   
+-   return (matrix);
+-}
+-
+-
+-/* px_get -- gets a PERM of given 'size' by dynamic memory allocation
+-   -- Note: initialized to the identity permutation */
+-PERM	*px_get(size)
+-int	size;
+-{
+-   PERM	*permute;
+-   int	i;
+-
+-   if (size < 0)
+-     error(E_NEG,"px_get");
+-
+-   if ((permute=NEW(PERM)) == (PERM *)NULL )
+-     error(E_MEM,"px_get");
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_PERM,0,sizeof(PERM));
+-      mem_numvar(TYPE_PERM,1);
+-   }
+-   
+-   permute->size = permute->max_size = size;
+-   if ((permute->pe = NEW_A(size,u_int)) == (u_int *)NULL )
+-     error(E_MEM,"px_get");
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_PERM,0,size*sizeof(u_int));
+-   }
+-   
+-   for ( i=0; i<size; i++ )
+-     permute->pe[i] = i;
+-   
+-   return (permute);
+-}
+-
+-/* v_get -- gets a VEC of dimension 'dim'
+-   -- Note: initialized to zero */
+-VEC	*v_get(size)
+-int	size;
+-{
+-   VEC	*vector;
+-   
+-   if (size < 0)
+-     error(E_NEG,"v_get");
+-
+-   if ((vector=NEW(VEC)) == (VEC *)NULL )
+-     error(E_MEM,"v_get");
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_VEC,0,sizeof(VEC));
+-      mem_numvar(TYPE_VEC,1);
+-   }
+-   
+-   vector->dim = vector->max_dim = size;
+-   if ((vector->ve=NEW_A(size,Real)) == (Real *)NULL )
+-   {
+-      free(vector);
+-      error(E_MEM,"v_get");
+-   }
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_VEC,0,size*sizeof(Real));
+-   }
+-   
+-   return (vector);
+-}
+-
+-/* m_free -- returns MAT & asoociated memory back to memory heap */
+-int	m_free(mat)
+-MAT	*mat;
+-{
+-#ifdef SEGMENTED
+-   int	i;
+-#endif
+-   
+-   if ( mat==(MAT *)NULL || (int)(mat->m) < 0 ||
+-       (int)(mat->n) < 0 )
+-     /* don't trust it */
+-     return (-1);
+-   
+-#ifndef SEGMENTED
+-   if ( mat->base != (Real *)NULL ) {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_MAT,mat->max_m*mat->max_n*sizeof(Real),0);
+-      }
+-      free((char *)(mat->base));
+-   }
+-#else
+-   for ( i = 0; i < mat->max_m; i++ )
+-     if ( mat->me[i] != (Real *)NULL ) {
+-	if (mem_info_is_on()) {
+-	   mem_bytes(TYPE_MAT,mat->max_n*sizeof(Real),0);
+-	}
+-	free((char *)(mat->me[i]));
+-     }
+-#endif
+-   if ( mat->me != (Real **)NULL ) {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_MAT,mat->max_m*sizeof(Real *),0);
+-      }
+-      free((char *)(mat->me));
+-   }
+-   
+-   if (mem_info_is_on()) {
+-      mem_bytes(TYPE_MAT,sizeof(MAT),0);
+-      mem_numvar(TYPE_MAT,-1);
+-   }
+-   free((char *)mat);
+-   
+-   return (0);
+-}
+-
+-
+-
+-/* px_free -- returns PERM & asoociated memory back to memory heap */
+-int	px_free(px)
+-PERM	*px;
+-{
+-   if ( px==(PERM *)NULL || (int)(px->size) < 0 )
+-     /* don't trust it */
+-     return (-1);
+-   
+-   if ( px->pe == (u_int *)NULL ) {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_PERM,sizeof(PERM),0);
+-	 mem_numvar(TYPE_PERM,-1);
+-      }      
+-      free((char *)px);
+-   }
+-   else
+-   {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_PERM,sizeof(PERM)+px->max_size*sizeof(u_int),0);
+-	 mem_numvar(TYPE_PERM,-1);
+-      }
+-      free((char *)px->pe);
+-      free((char *)px);
+-   }
+-   
+-   return (0);
+-}
+-
+-
+-
+-/* v_free -- returns VEC & asoociated memory back to memory heap */
+-int	v_free(vec)
+-VEC	*vec;
+-{
+-   if ( vec==(VEC *)NULL || (int)(vec->dim) < 0 )
+-     /* don't trust it */
+-     return (-1);
+-   
+-   if ( vec->ve == (Real *)NULL ) {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_VEC,sizeof(VEC),0);
+-	 mem_numvar(TYPE_VEC,-1);
+-      }
+-      free((char *)vec);
+-   }
+-   else
+-   {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_VEC,sizeof(VEC)+vec->max_dim*sizeof(Real),0);
+-	 mem_numvar(TYPE_VEC,-1);
+-      }
+-      free((char *)vec->ve);
+-      free((char *)vec);
+-   }
+-   
+-   return (0);
+-}
+-
+-
+-
+-/* m_resize -- returns the matrix A of size new_m x new_n; A is zeroed
+-   -- if A == NULL on entry then the effect is equivalent to m_get() */
+-MAT	*m_resize(A,new_m,new_n)
+-MAT	*A;
+-int	new_m, new_n;
+-{
+-   int	i;
+-   int	new_max_m, new_max_n, new_size, old_m, old_n;
+-   
+-   if (new_m < 0 || new_n < 0)
+-     error(E_NEG,"m_resize");
+-
+-   if ( ! A )
+-     return m_get(new_m,new_n);
+-
+-   /* nothing was changed */
+-   if (new_m == A->m && new_n == A->n)
+-     return A;
+-
+-   old_m = A->m;	old_n = A->n;
+-   if ( new_m > A->max_m )
+-   {	/* re-allocate A->me */
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_MAT,A->max_m*sizeof(Real *),
+-		      new_m*sizeof(Real *));
+-      }
+-
+-      A->me = RENEW(A->me,new_m,Real *);
+-      if ( ! A->me )
+-	error(E_MEM,"m_resize");
+-   }
+-   new_max_m = max(new_m,A->max_m);
+-   new_max_n = max(new_n,A->max_n);
+-   
+-#ifndef SEGMENTED
+-   new_size = new_max_m*new_max_n;
+-   if ( new_size > A->max_size )
+-   {	/* re-allocate A->base */
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_MAT,A->max_m*A->max_n*sizeof(Real),
+-		      new_size*sizeof(Real));
+-      }
+-
+-      A->base = RENEW(A->base,new_size,Real);
+-      if ( ! A->base )
+-	error(E_MEM,"m_resize");
+-      A->max_size = new_size;
+-   }
+-   
+-   /* now set up A->me[i] */
+-   for ( i = 0; i < new_m; i++ )
+-     A->me[i] = &(A->base[i*new_n]);
+-   
+-   /* now shift data in matrix */
+-   if ( old_n > new_n )
+-   {
+-      for ( i = 1; i < min(old_m,new_m); i++ )
+-	MEM_COPY((char *)&(A->base[i*old_n]),
+-		 (char *)&(A->base[i*new_n]),
+-		 sizeof(Real)*new_n);
+-   }
+-   else if ( old_n < new_n )
+-   {
+-      for ( i = (int)(min(old_m,new_m))-1; i > 0; i-- )
+-      {   /* copy & then zero extra space */
+-	 MEM_COPY((char *)&(A->base[i*old_n]),
+-		  (char *)&(A->base[i*new_n]),
+-		  sizeof(Real)*old_n);
+-	 __zero__(&(A->base[i*new_n+old_n]),(new_n-old_n));
+-      }
+-      __zero__(&(A->base[old_n]),(new_n-old_n));
+-      A->max_n = new_n;
+-   }
+-   /* zero out the new rows.. */
+-   for ( i = old_m; i < new_m; i++ )
+-     __zero__(&(A->base[i*new_n]),new_n);
+-#else
+-   if ( A->max_n < new_n )
+-   {
+-      Real	*tmp;
+-      
+-      for ( i = 0; i < A->max_m; i++ )
+-      {
+-	 if (mem_info_is_on()) {
+-	    mem_bytes(TYPE_MAT,A->max_n*sizeof(Real),
+-			 new_max_n*sizeof(Real));
+-	 }	
+-
+-	 if ( (tmp = RENEW(A->me[i],new_max_n,Real)) == NULL )
+-	   error(E_MEM,"m_resize");
+-	 else {	
+-	    A->me[i] = tmp;
+-	 }
+-      }
+-      for ( i = A->max_m; i < new_max_m; i++ )
+-      {
+-	 if ( (tmp = NEW_A(new_max_n,Real)) == NULL )
+-	   error(E_MEM,"m_resize");
+-	 else {
+-	    A->me[i] = tmp;
+-
+-	    if (mem_info_is_on()) {
+-	       mem_bytes(TYPE_MAT,0,new_max_n*sizeof(Real));
+-	    }	    
+-	 }
+-      }
+-   }
+-   else if ( A->max_m < new_m )
+-   {
+-      for ( i = A->max_m; i < new_m; i++ ) 
+-	if ( (A->me[i] = NEW_A(new_max_n,Real)) == NULL )
+-	  error(E_MEM,"m_resize");
+-	else if (mem_info_is_on()) {
+-	   mem_bytes(TYPE_MAT,0,new_max_n*sizeof(Real));
+-	}
+-      
+-   }
+-   
+-   if ( old_n < new_n )
+-   {
+-      for ( i = 0; i < old_m; i++ )
+-	__zero__(&(A->me[i][old_n]),new_n-old_n);
+-   }
+-   
+-   /* zero out the new rows.. */
+-   for ( i = old_m; i < new_m; i++ )
+-     __zero__(A->me[i],new_n);
+-#endif
+-   
+-   A->max_m = new_max_m;
+-   A->max_n = new_max_n;
+-   A->max_size = A->max_m*A->max_n;
+-   A->m = new_m;	A->n = new_n;
+-   
+-   return A;
+-}
+-
+-/* px_resize -- returns the permutation px with size new_size
+-   -- px is set to the identity permutation */
+-PERM	*px_resize(px,new_size)
+-PERM	*px;
+-int	new_size;
+-{
+-   int	i;
+-   
+-   if (new_size < 0)
+-     error(E_NEG,"px_resize");
+-
+-   if ( ! px )
+-     return px_get(new_size);
+-   
+-   /* nothing is changed */
+-   if (new_size == px->size)
+-     return px;
+-
+-   if ( new_size > px->max_size )
+-   {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_PERM,px->max_size*sizeof(u_int),
+-		      new_size*sizeof(u_int));
+-      }
+-      px->pe = RENEW(px->pe,new_size,u_int);
+-      if ( ! px->pe )
+-	error(E_MEM,"px_resize");
+-      px->max_size = new_size;
+-   }
+-   if ( px->size <= new_size )
+-     /* extend permutation */
+-     for ( i = px->size; i < new_size; i++ )
+-       px->pe[i] = i;
+-   else
+-     for ( i = 0; i < new_size; i++ )
+-       px->pe[i] = i;
+-   
+-   px->size = new_size;
+-   
+-   return px;
+-}
+-
+-/* v_resize -- returns the vector x with dim new_dim
+-   -- x is set to the zero vector */
+-VEC	*v_resize(x,new_dim)
+-VEC	*x;
+-int	new_dim;
+-{
+-   
+-   if (new_dim < 0)
+-     error(E_NEG,"v_resize");
+-
+-   if ( ! x )
+-     return v_get(new_dim);
+-
+-   /* nothing is changed */
+-   if (new_dim == x->dim)
+-     return x;
+-
+-   if ( x->max_dim == 0 )	/* assume that it's from sub_vec */
+-     return v_get(new_dim);
+-   
+-   if ( new_dim > x->max_dim )
+-   {
+-      if (mem_info_is_on()) { 
+-	 mem_bytes(TYPE_VEC,x->max_dim*sizeof(Real),
+-			 new_dim*sizeof(Real));
+-      }
+-
+-      x->ve = RENEW(x->ve,new_dim,Real);
+-      if ( ! x->ve )
+-	error(E_MEM,"v_resize");
+-      x->max_dim = new_dim;
+-   }
+-   
+-   if ( new_dim > x->dim )
+-     __zero__(&(x->ve[x->dim]),new_dim - x->dim);
+-   x->dim = new_dim;
+-   
+-   return x;
+-}
+-
+-
+-
+-
+-/* Varying number of arguments */
+-/* other functions of this type are in sparse.c and zmemory.c */
+-
+-
+-
+-#ifdef ANSI_C
+-
+-
+-/* To allocate memory to many arguments. 
+-   The function should be called:
+-   v_get_vars(dim,&x,&y,&z,...,NULL);
+-   where 
+-     int dim;
+-     VEC *x, *y, *z,...;
+-     The last argument should be NULL ! 
+-     dim is the length of vectors x,y,z,...
+-     returned value is equal to the number of allocated variables
+-     Other gec_... functions are similar.
+-*/
+-
+-int v_get_vars(int dim,...) 
+-{
+-   va_list ap;
+-   int i=0;
+-   VEC **par;
+-   
+-   va_start(ap, dim);
+-   while (par = va_arg(ap,VEC **)) {   /* NULL ends the list*/
+-      *par = v_get(dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-int iv_get_vars(int dim,...) 
+-{
+-   va_list ap;
+-   int i=0;
+-   IVEC **par;
+-   
+-   va_start(ap, dim);
+-   while (par = va_arg(ap,IVEC **)) {   /* NULL ends the list*/
+-      *par = iv_get(dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-int m_get_vars(int m,int n,...) 
+-{
+-   va_list ap;
+-   int i=0;
+-   MAT **par;
+-   
+-   va_start(ap, n);
+-   while (par = va_arg(ap,MAT **)) {   /* NULL ends the list*/
+-      *par = m_get(m,n);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-int px_get_vars(int dim,...) 
+-{
+-   va_list ap;
+-   int i=0;
+-   PERM **par;
+-   
+-   va_start(ap, dim);
+-   while (par = va_arg(ap,PERM **)) {   /* NULL ends the list*/
+-      *par = px_get(dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-
+-/* To resize memory for many arguments. 
+-   The function should be called:
+-   v_resize_vars(new_dim,&x,&y,&z,...,NULL);
+-   where 
+-     int new_dim;
+-     VEC *x, *y, *z,...;
+-     The last argument should be NULL ! 
+-     rdim is the resized length of vectors x,y,z,...
+-     returned value is equal to the number of allocated variables.
+-     If one of x,y,z,.. arguments is NULL then memory is allocated to this 
+-     argument. 
+-     Other *_resize_list() functions are similar.
+-*/
+-
+-int v_resize_vars(int new_dim,...)
+-{
+-   va_list ap;
+-   int i=0;
+-   VEC **par;
+-   
+-   va_start(ap, new_dim);
+-   while (par = va_arg(ap,VEC **)) {   /* NULL ends the list*/
+-      *par = v_resize(*par,new_dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-
+-int iv_resize_vars(int new_dim,...) 
+-{
+-   va_list ap;
+-   int i=0;
+-   IVEC **par;
+-   
+-   va_start(ap, new_dim);
+-   while (par = va_arg(ap,IVEC **)) {   /* NULL ends the list*/
+-      *par = iv_resize(*par,new_dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-int m_resize_vars(int m,int n,...) 
+-{
+-   va_list ap;
+-   int i=0;
+-   MAT **par;
+-   
+-   va_start(ap, n);
+-   while (par = va_arg(ap,MAT **)) {   /* NULL ends the list*/
+-      *par = m_resize(*par,m,n);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-int px_resize_vars(int new_dim,...) 
+-{
+-   va_list ap;
+-   int i=0;
+-   PERM **par;
+-   
+-   va_start(ap, new_dim);
+-   while (par = va_arg(ap,PERM **)) {   /* NULL ends the list*/
+-      *par = px_resize(*par,new_dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-/* To deallocate memory for many arguments. 
+-   The function should be called:
+-   v_free_vars(&x,&y,&z,...,NULL);
+-   where 
+-     VEC *x, *y, *z,...;
+-     The last argument should be NULL ! 
+-     There must be at least one not NULL argument.
+-     returned value is equal to the number of allocated variables.
+-     Returned value of x,y,z,.. is VNULL.
+-     Other *_free_list() functions are similar.
+-*/
+-
+-
+-int v_free_vars(VEC **pv,...)
+-{
+-   va_list ap;
+-   int i=1;
+-   VEC **par;
+-   
+-   v_free(*pv);
+-   *pv = VNULL;
+-   va_start(ap, pv);
+-   while (par = va_arg(ap,VEC **)) {   /* NULL ends the list*/
+-      v_free(*par); 
+-      *par = VNULL;
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-int iv_free_vars(IVEC **ipv,...)
+-{
+-   va_list ap;
+-   int i=1;
+-   IVEC **par;
+-   
+-   iv_free(*ipv);
+-   *ipv = IVNULL;
+-   va_start(ap, ipv);
+-   while (par = va_arg(ap,IVEC **)) {   /* NULL ends the list*/
+-      iv_free(*par); 
+-      *par = IVNULL;
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-int px_free_vars(PERM **vpx,...)
+-{
+-   va_list ap;
+-   int i=1;
+-   PERM **par;
+-   
+-   px_free(*vpx);
+-   *vpx = PNULL;
+-   va_start(ap, vpx);
+-   while (par = va_arg(ap,PERM **)) {   /* NULL ends the list*/
+-      px_free(*par); 
+-      *par = PNULL;
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-int m_free_vars(MAT **va,...)
+-{
+-   va_list ap;
+-   int i=1;
+-   MAT **par;
+-   
+-   m_free(*va);
+-   *va = MNULL;
+-   va_start(ap, va);
+-   while (par = va_arg(ap,MAT **)) {   /* NULL ends the list*/
+-      m_free(*par); 
+-      *par = MNULL;
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-#elif VARARGS
+-/* old varargs is used */
+-
+-
+-
+-/* To allocate memory to many arguments. 
+-   The function should be called:
+-   v_get_vars(dim,&x,&y,&z,...,VNULL);
+-   where 
+-     int dim;
+-     VEC *x, *y, *z,...;
+-     The last argument should be VNULL ! 
+-     dim is the length of vectors x,y,z,...
+-*/
+-
+-int v_get_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int dim,i=0;
+-   VEC **par;
+-   
+-   va_start(ap);
+-   dim = va_arg(ap,int);
+-   while (par = va_arg(ap,VEC **)) {   /* NULL ends the list*/
+-      *par = v_get(dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-int iv_get_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0, dim;
+-   IVEC **par;
+-   
+-   va_start(ap);
+-   dim = va_arg(ap,int);
+-   while (par = va_arg(ap,IVEC **)) {   /* NULL ends the list*/
+-      *par = iv_get(dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-int m_get_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0, n, m;
+-   MAT **par;
+-   
+-   va_start(ap);
+-   m = va_arg(ap,int);
+-   n = va_arg(ap,int);
+-   while (par = va_arg(ap,MAT **)) {   /* NULL ends the list*/
+-      *par = m_get(m,n);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-
+-int px_get_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0, dim;
+-   PERM **par;
+-   
+-   va_start(ap);
+-   dim = va_arg(ap,int);
+-   while (par = va_arg(ap,PERM **)) {   /* NULL ends the list*/
+-      *par = px_get(dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-
+-/* To resize memory for many arguments. 
+-   The function should be called:
+-   v_resize_vars(new_dim,&x,&y,&z,...,NULL);
+-   where 
+-     int new_dim;
+-     VEC *x, *y, *z,...;
+-     The last argument should be NULL ! 
+-     rdim is the resized length of vectors x,y,z,...
+-     returned value is equal to the number of allocated variables.
+-     If one of x,y,z,.. arguments is NULL then memory is allocated to this 
+-     argument. 
+-     Other *_resize_list() functions are similar.
+-*/
+-
+-int v_resize_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0, new_dim;
+-   VEC **par;
+-   
+-   va_start(ap);
+-   new_dim = va_arg(ap,int);
+-   while (par = va_arg(ap,VEC **)) {   /* NULL ends the list*/
+-      *par = v_resize(*par,new_dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-
+-int iv_resize_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0, new_dim;
+-   IVEC **par;
+-   
+-   va_start(ap);
+-   new_dim = va_arg(ap,int);
+-   while (par = va_arg(ap,IVEC **)) {   /* NULL ends the list*/
+-      *par = iv_resize(*par,new_dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-int m_resize_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0, m, n;
+-   MAT **par;
+-   
+-   va_start(ap);
+-   m = va_arg(ap,int);
+-   n = va_arg(ap,int);
+-   while (par = va_arg(ap,MAT **)) {   /* NULL ends the list*/
+-      *par = m_resize(*par,m,n);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-int px_resize_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0, new_dim;
+-   PERM **par;
+-   
+-   va_start(ap);
+-   new_dim = va_arg(ap,int);
+-   while (par = va_arg(ap,PERM **)) {   /* NULL ends the list*/
+-      *par = px_resize(*par,new_dim);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-/* To deallocate memory for many arguments. 
+-   The function should be called:
+-   v_free_vars(&x,&y,&z,...,NULL);
+-   where 
+-     VEC *x, *y, *z,...;
+-     The last argument should be NULL ! 
+-     returned value is equal to the number of allocated variables.
+-     Returned value of x,y,z,.. is VNULL.
+-     Other *_free_list() functions are similar.
+-*/
+-
+-
+-int v_free_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0;
+-   VEC **par;
+-   
+-   va_start(ap);
+-   while (par = va_arg(ap,VEC **)) {   /* NULL ends the list*/
+-      v_free(*par); 
+-      *par = VNULL;
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-
+-int iv_free_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0;
+-   IVEC **par;
+-   
+-   va_start(ap);
+-   while (par = va_arg(ap,IVEC **)) {   /* NULL ends the list*/
+-      iv_free(*par); 
+-      *par = IVNULL;
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-int px_free_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0;
+-   PERM **par;
+-   
+-   va_start(ap);
+-   while (par = va_arg(ap,PERM **)) {   /* NULL ends the list*/
+-      px_free(*par); 
+-      *par = PNULL;
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-int m_free_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int i=0;
+-   MAT **par;
+-   
+-   va_start(ap);
+-   while (par = va_arg(ap,MAT **)) {   /* NULL ends the list*/
+-      m_free(*par); 
+-      *par = MNULL;
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-
+-#endif /* VARARGS */
+-  
+-
+//GO.SYSIN DD memory.c
+echo vecop.c 1>&2
+sed >vecop.c <<'//GO.SYSIN DD vecop.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/* vecop.c 1.3 8/18/87 */
+-
+-#include	<stdio.h>
+-#include	"matrix.h"
+-
+-static	char	rcsid[] = "$Id: vecop.c,v 1.4 1994/03/08 05:50:39 des Exp $";
+-
+-
+-/* _in_prod -- inner product of two vectors from i0 downwards */
+-double	_in_prod(a,b,i0)
+-VEC	*a,*b;
+-u_int	i0;
+-{
+-	u_int	limit;
+-	/* Real	*a_v, *b_v; */
+-	/* register Real	sum; */
+-
+-	if ( a==(VEC *)NULL || b==(VEC *)NULL )
+-		error(E_NULL,"_in_prod");
+-	limit = min(a->dim,b->dim);
+-	if ( i0 > limit )
+-		error(E_BOUNDS,"_in_prod");
+-
+-	return __ip__(&(a->ve[i0]),&(b->ve[i0]),(int)(limit-i0));
+-	/*****************************************
+-	a_v = &(a->ve[i0]);		b_v = &(b->ve[i0]);
+-	for ( i=i0; i<limit; i++ )
+-		sum += a_v[i]*b_v[i];
+-		sum += (*a_v++)*(*b_v++);
+-
+-	return (double)sum;
+-	******************************************/
+-}
+-
+-/* sv_mlt -- scalar-vector multiply -- may be in-situ */
+-VEC	*sv_mlt(scalar,vector,out)
+-double	scalar;
+-VEC	*vector,*out;
+-{
+-	/* u_int	dim, i; */
+-	/* Real	*out_ve, *vec_ve; */
+-
+-	if ( vector==(VEC *)NULL )
+-		error(E_NULL,"sv_mlt");
+-	if ( out==(VEC *)NULL || out->dim != vector->dim )
+-		out = v_resize(out,vector->dim);
+-	if ( scalar == 0.0 )
+-		return v_zero(out);
+-	if ( scalar == 1.0 )
+-		return v_copy(vector,out);
+-
+-	__smlt__(vector->ve,(double)scalar,out->ve,(int)(vector->dim));
+-	/**************************************************
+-	dim = vector->dim;
+-	out_ve = out->ve;	vec_ve = vector->ve;
+-	for ( i=0; i<dim; i++ )
+-		out->ve[i] = scalar*vector->ve[i];
+-		(*out_ve++) = scalar*(*vec_ve++);
+-	**************************************************/
+-	return (out);
+-}
+-
+-/* v_add -- vector addition -- may be in-situ */
+-VEC	*v_add(vec1,vec2,out)
+-VEC	*vec1,*vec2,*out;
+-{
+-	u_int	dim;
+-	/* Real	*out_ve, *vec1_ve, *vec2_ve; */
+-
+-	if ( vec1==(VEC *)NULL || vec2==(VEC *)NULL )
+-		error(E_NULL,"v_add");
+-	if ( vec1->dim != vec2->dim )
+-		error(E_SIZES,"v_add");
+-	if ( out==(VEC *)NULL || out->dim != vec1->dim )
+-		out = v_resize(out,vec1->dim);
+-	dim = vec1->dim;
+-	__add__(vec1->ve,vec2->ve,out->ve,(int)dim);
+-	/************************************************************
+-	out_ve = out->ve;	vec1_ve = vec1->ve;	vec2_ve = vec2->ve;
+-	for ( i=0; i<dim; i++ )
+-		out->ve[i] = vec1->ve[i]+vec2->ve[i];
+-		(*out_ve++) = (*vec1_ve++) + (*vec2_ve++);
+-	************************************************************/
+-
+-	return (out);
+-}
+-
+-/* v_mltadd -- scalar/vector multiplication and addition
+-		-- out = v1 + scale.v2		*/
+-VEC	*v_mltadd(v1,v2,scale,out)
+-VEC	*v1,*v2,*out;
+-double	scale;
+-{
+-	/* register u_int	dim, i; */
+-	/* Real	*out_ve, *v1_ve, *v2_ve; */
+-
+-	if ( v1==(VEC *)NULL || v2==(VEC *)NULL )
+-		error(E_NULL,"v_mltadd");
+-	if ( v1->dim != v2->dim )
+-		error(E_SIZES,"v_mltadd");
+-	if ( scale == 0.0 )
+-		return v_copy(v1,out);
+-	if ( scale == 1.0 )
+-		return v_add(v1,v2,out);
+-
+-	if ( v2 != out )
+-	{
+-	    tracecatch(out = v_copy(v1,out),"v_mltadd");
+-
+-	    /* dim = v1->dim; */
+-	    __mltadd__(out->ve,v2->ve,scale,(int)(v1->dim));
+-	}
+-	else
+-	{
+-	    tracecatch(out = sv_mlt(scale,v2,out),"v_mltadd");
+-	    out = v_add(v1,out,out);
+-	}
+-	/************************************************************
+-	out_ve = out->ve;	v1_ve = v1->ve;		v2_ve = v2->ve;
+-	for ( i=0; i < dim ; i++ )
+-		out->ve[i] = v1->ve[i] + scale*v2->ve[i];
+-		(*out_ve++) = (*v1_ve++) + scale*(*v2_ve++);
+-	************************************************************/
+-
+-	return (out);
+-}
+-
+-/* v_sub -- vector subtraction -- may be in-situ */
+-VEC	*v_sub(vec1,vec2,out)
+-VEC	*vec1,*vec2,*out;
+-{
+-	/* u_int	i, dim; */
+-	/* Real	*out_ve, *vec1_ve, *vec2_ve; */
+-
+-	if ( vec1==(VEC *)NULL || vec2==(VEC *)NULL )
+-		error(E_NULL,"v_sub");
+-	if ( vec1->dim != vec2->dim )
+-		error(E_SIZES,"v_sub");
+-	if ( out==(VEC *)NULL || out->dim != vec1->dim )
+-		out = v_resize(out,vec1->dim);
+-
+-	__sub__(vec1->ve,vec2->ve,out->ve,(int)(vec1->dim));
+-	/************************************************************
+-	dim = vec1->dim;
+-	out_ve = out->ve;	vec1_ve = vec1->ve;	vec2_ve = vec2->ve;
+-	for ( i=0; i<dim; i++ )
+-		out->ve[i] = vec1->ve[i]-vec2->ve[i];
+-		(*out_ve++) = (*vec1_ve++) - (*vec2_ve++);
+-	************************************************************/
+-
+-	return (out);
+-}
+-
+-/* v_map -- maps function f over components of x: out[i] = f(x[i])
+-	-- _v_map sets out[i] = f(params,x[i]) */
+-VEC	*v_map(f,x,out)
+-#ifdef PROTOTYPES_IN_STRUCT
+-double	(*f)(double);
+-#else
+-double	(*f)();
+-#endif
+-VEC	*x, *out;
+-{
+-	Real	*x_ve, *out_ve;
+-	int	i, dim;
+-
+-	if ( ! x || ! f )
+-		error(E_NULL,"v_map");
+-	if ( ! out || out->dim != x->dim )
+-		out = v_resize(out,x->dim);
+-
+-	dim = x->dim;	x_ve = x->ve;	out_ve = out->ve;
+-	for ( i = 0; i < dim; i++ )
+-		*out_ve++ = (*f)(*x_ve++);
+-
+-	return out;
+-}
+-
+-VEC	*_v_map(f,params,x,out)
+-#ifdef PROTOTYPES_IN_STRUCT
+-double	(*f)(void *,double);
+-#else
+-double	(*f)();
+-#endif
+-VEC	*x, *out;
+-void	*params;
+-{
+-	Real	*x_ve, *out_ve;
+-	int	i, dim;
+-
+-	if ( ! x || ! f )
+-		error(E_NULL,"_v_map");
+-	if ( ! out || out->dim != x->dim )
+-		out = v_resize(out,x->dim);
+-
+-	dim = x->dim;	x_ve = x->ve;	out_ve = out->ve;
+-	for ( i = 0; i < dim; i++ )
+-		*out_ve++ = (*f)(params,*x_ve++);
+-
+-	return out;
+-}
+-
+-/* v_lincomb -- returns sum_i a[i].v[i], a[i] real, v[i] vectors */
+-VEC	*v_lincomb(n,v,a,out)
+-int	n;	/* number of a's and v's */
+-Real	a[];
+-VEC	*v[], *out;
+-{
+-	int	i;
+-
+-	if ( ! a || ! v )
+-		error(E_NULL,"v_lincomb");
+-	if ( n <= 0 )
+-		return VNULL;
+-
+-	for ( i = 1; i < n; i++ )
+-		if ( out == v[i] )
+-		    error(E_INSITU,"v_lincomb");
+-
+-	out = sv_mlt(a[0],v[0],out);
+-	for ( i = 1; i < n; i++ )
+-	{
+-		if ( ! v[i] )
+-			error(E_NULL,"v_lincomb");
+-		if ( v[i]->dim != out->dim )
+-			error(E_SIZES,"v_lincomb");
+-		out = v_mltadd(out,v[i],a[i],out);
+-	}
+-
+-	return out;
+-}
+-
+-
+-
+-#ifdef ANSI_C
+-
+-/* v_linlist -- linear combinations taken from a list of arguments;
+-   calling:
+-      v_linlist(out,v1,a1,v2,a2,...,vn,an,NULL);
+-   where vi are vectors (VEC *) and ai are numbers (double)
+-*/
+-VEC  *v_linlist(VEC *out,VEC *v1,double a1,...)
+-{
+-   va_list ap;
+-   VEC *par;
+-   double a_par;
+-
+-   if ( ! v1 )
+-     return VNULL;
+-   
+-   va_start(ap, a1);
+-   out = sv_mlt(a1,v1,out);
+-   
+-   while (par = va_arg(ap,VEC *)) {   /* NULL ends the list*/
+-      a_par = va_arg(ap,double);
+-      if (a_par == 0.0) continue;
+-      if ( out == par )		
+-	error(E_INSITU,"v_linlist");
+-      if ( out->dim != par->dim )	
+-	error(E_SIZES,"v_linlist");
+-
+-      if (a_par == 1.0)
+-	out = v_add(out,par,out);
+-      else if (a_par == -1.0)
+-	out = v_sub(out,par,out);
+-      else
+-	out = v_mltadd(out,par,a_par,out); 
+-   } 
+-   
+-   va_end(ap);
+-   return out;
+-}
+- 
+-#elif VARARGS
+-
+-
+-/* v_linlist -- linear combinations taken from a list of arguments;
+-   calling:
+-      v_linlist(out,v1,a1,v2,a2,...,vn,an,NULL);
+-   where vi are vectors (VEC *) and ai are numbers (double)
+-*/
+-VEC  *v_linlist(va_alist) va_dcl
+-{
+-   va_list ap;
+-   VEC *par, *out;
+-   double a_par;
+-
+-   va_start(ap);
+-   out = va_arg(ap,VEC *);
+-   par = va_arg(ap,VEC *);
+-   if ( ! par ) {
+-      va_end(ap);
+-      return VNULL;
+-   }
+-   
+-   a_par = va_arg(ap,double);
+-   out = sv_mlt(a_par,par,out);
+-   
+-   while (par = va_arg(ap,VEC *)) {   /* NULL ends the list*/
+-      a_par = va_arg(ap,double);
+-      if (a_par == 0.0) continue;
+-      if ( out == par )		
+-	error(E_INSITU,"v_linlist");
+-      if ( out->dim != par->dim )	
+-	error(E_SIZES,"v_linlist");
+-
+-      if (a_par == 1.0)
+-	out = v_add(out,par,out);
+-      else if (a_par == -1.0)
+-	out = v_sub(out,par,out);
+-      else
+-	out = v_mltadd(out,par,a_par,out); 
+-   } 
+-   
+-   va_end(ap);
+-   return out;
+-}
+-
+-#endif
+-  
+-
+-
+-
+-
+-/* v_star -- computes componentwise (Hadamard) product of x1 and x2
+-	-- result out is returned */
+-VEC	*v_star(x1, x2, out)
+-VEC	*x1, *x2, *out;
+-{
+-    int		i;
+-
+-    if ( ! x1 || ! x2 )
+-	error(E_NULL,"v_star");
+-    if ( x1->dim != x2->dim )
+-	error(E_SIZES,"v_star");
+-    out = v_resize(out,x1->dim);
+-
+-    for ( i = 0; i < x1->dim; i++ )
+-	out->ve[i] = x1->ve[i] * x2->ve[i];
+-
+-    return out;
+-}
+-
+-/* v_slash -- computes componentwise ratio of x2 and x1
+-	-- out[i] = x2[i] / x1[i]
+-	-- if x1[i] == 0 for some i, then raise E_SING error
+-	-- result out is returned */
+-VEC	*v_slash(x1, x2, out)
+-VEC	*x1, *x2, *out;
+-{
+-    int		i;
+-    Real	tmp;
+-
+-    if ( ! x1 || ! x2 )
+-	error(E_NULL,"v_slash");
+-    if ( x1->dim != x2->dim )
+-	error(E_SIZES,"v_slash");
+-    out = v_resize(out,x1->dim);
+-
+-    for ( i = 0; i < x1->dim; i++ )
+-    {
+-	tmp = x1->ve[i];
+-	if ( tmp == 0.0 )
+-	    error(E_SING,"v_slash");
+-	out->ve[i] = x2->ve[i] / tmp;
+-    }
+-
+-    return out;
+-}
+-
+-/* v_min -- computes minimum component of x, which is returned
+-	-- also sets min_idx to the index of this minimum */
+-double	v_min(x, min_idx)
+-VEC	*x;
+-int	*min_idx;
+-{
+-    int		i, i_min;
+-    Real	min_val, tmp;
+-
+-    if ( ! x )
+-	error(E_NULL,"v_min");
+-    if ( x->dim <= 0 )
+-	error(E_SIZES,"v_min");
+-    i_min = 0;
+-    min_val = x->ve[0];
+-    for ( i = 1; i < x->dim; i++ )
+-    {
+-	tmp = x->ve[i];
+-	if ( tmp < min_val )
+-	{
+-	    min_val = tmp;
+-	    i_min = i;
+-	}
+-    }
+-
+-    if ( min_idx != NULL )
+-	*min_idx = i_min;
+-    return min_val;
+-}
+-
+-/* v_max -- computes maximum component of x, which is returned
+-	-- also sets max_idx to the index of this maximum */
+-double	v_max(x, max_idx)
+-VEC	*x;
+-int	*max_idx;
+-{
+-    int		i, i_max;
+-    Real	max_val, tmp;
+-
+-    if ( ! x )
+-	error(E_NULL,"v_max");
+-    if ( x->dim <= 0 )
+-	error(E_SIZES,"v_max");
+-    i_max = 0;
+-    max_val = x->ve[0];
+-    for ( i = 1; i < x->dim; i++ )
+-    {
+-	tmp = x->ve[i];
+-	if ( tmp > max_val )
+-	{
+-	    max_val = tmp;
+-	    i_max = i;
+-	}
+-    }
+-
+-    if ( max_idx != NULL )
+-	*max_idx = i_max;
+-    return max_val;
+-}
+-
+-#define	MAX_STACK	60
+-
+-
+-/* v_sort -- sorts vector x, and generates permutation that gives the order
+-	of the components; x = [1.3, 3.7, 0.5] -> [0.5, 1.3, 3.7] and
+-	the permutation is order = [2, 0, 1].
+-	-- if order is NULL on entry then it is ignored
+-	-- the sorted vector x is returned */
+-VEC	*v_sort(x, order)
+-VEC	*x;
+-PERM	*order;
+-{
+-    Real	*x_ve, tmp, v;
+-    /* int		*order_pe; */
+-    int		dim, i, j, l, r, tmp_i;
+-    int		stack[MAX_STACK], sp;
+-
+-    if ( ! x )
+-	error(E_NULL,"v_sort");
+-    if ( order != PNULL && order->size != x->dim )
+-	order = px_resize(order, x->dim);
+-
+-    x_ve = x->ve;
+-    dim = x->dim;
+-    if ( order != PNULL )
+-	px_ident(order);
+-
+-    if ( dim <= 1 )
+-	return x;
+-
+-    /* using quicksort algorithm in Sedgewick,
+-       "Algorithms in C", Ch. 9, pp. 118--122 (1990) */
+-    sp = 0;
+-    l = 0;	r = dim-1;	v = x_ve[0];
+-    for ( ; ; )
+-    {
+-	while ( r > l )
+-	{
+-	    /* "i = partition(x_ve,l,r);" */
+-	    v = x_ve[r];
+-	    i = l-1;
+-	    j = r;
+-	    for ( ; ; )
+-	    {
+-		while ( x_ve[++i] < v )
+-		    ;
+-		while ( x_ve[--j] > v )
+-		    ;
+-		if ( i >= j )	break;
+-		
+-		tmp = x_ve[i];
+-		x_ve[i] = x_ve[j];
+-		x_ve[j] = tmp;
+-		if ( order != PNULL )
+-		{
+-		    tmp_i = order->pe[i];
+-		    order->pe[i] = order->pe[j];
+-		    order->pe[j] = tmp_i;
+-		}
+-	    }
+-	    tmp = x_ve[i];
+-	    x_ve[i] = x_ve[r];
+-	    x_ve[r] = tmp;
+-	    if ( order != PNULL )
+-	    {
+-		tmp_i = order->pe[i];
+-		order->pe[i] = order->pe[r];
+-		order->pe[r] = tmp_i;
+-	    }
+-
+-	    if ( i-l > r-i )
+-	    {   stack[sp++] = l;   stack[sp++] = i-1;   l = i+1;   }
+-	    else
+-	    {   stack[sp++] = i+1;   stack[sp++] = r;   r = i-1;   }
+-	}
+-
+-	/* recursion elimination */
+-	if ( sp == 0 )
+-	    break;
+-	r = stack[--sp];
+-	l = stack[--sp];
+-    }
+-
+-    return x;
+-}
+-
+-/* v_sum -- returns sum of entries of a vector */
+-double	v_sum(x)
+-VEC	*x;
+-{
+-    int		i;
+-    Real	sum;
+-
+-    if ( ! x )
+-	error(E_NULL,"v_sum");
+-
+-    sum = 0.0;
+-    for ( i = 0; i < x->dim; i++ )
+-	sum += x->ve[i];
+-
+-    return sum;
+-}
+-
+-/* v_conv -- computes convolution product of two vectors */
+-VEC	*v_conv(x1, x2, out)
+-VEC	*x1, *x2, *out;
+-{
+-    int		i;
+-
+-    if ( ! x1 || ! x2 )
+-	error(E_NULL,"v_conv");
+-    if ( x1 == out || x2 == out )
+-	error(E_INSITU,"v_conv");
+-    if ( x1->dim == 0 || x2->dim == 0 )
+-	return out = v_resize(out,0);
+-
+-    out = v_resize(out,x1->dim + x2->dim - 1);
+-    v_zero(out);
+-    for ( i = 0; i < x1->dim; i++ )
+-	__mltadd__(&(out->ve[i]),x2->ve,x1->ve[i],x2->dim);
+-
+-    return out;
+-}
+-
+-/* v_pconv -- computes a periodic convolution product
+-	-- the period is the dimension of x2 */
+-VEC	*v_pconv(x1, x2, out)
+-VEC	*x1, *x2, *out;
+-{
+-    int		i;
+-
+-    if ( ! x1 || ! x2 )
+-	error(E_NULL,"v_pconv");
+-    if ( x1 == out || x2 == out )
+-	error(E_INSITU,"v_pconv");
+-    out = v_resize(out,x2->dim);
+-    if ( x2->dim == 0 )
+-	return out;
+-
+-    v_zero(out);
+-    for ( i = 0; i < x1->dim; i++ )
+-    {
+-	__mltadd__(&(out->ve[i]),x2->ve,x1->ve[i],x2->dim - i);
+-	if ( i > 0 )
+-	    __mltadd__(out->ve,&(x2->ve[x2->dim - i]),x1->ve[i],i);
+-    }
+-
+-    return out;
+-}
+//GO.SYSIN DD vecop.c
+echo matop.c 1>&2
+sed >matop.c <<'//GO.SYSIN DD matop.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/* matop.c 1.3 11/25/87 */
+-
+-
+-#include	<stdio.h>
+-#include	"matrix.h"
+-
+-static	char	rcsid[] = "$Id: matop.c,v 1.3 1994/01/13 05:30:28 des Exp $";
+-
+-
+-/* m_add -- matrix addition -- may be in-situ */
+-MAT	*m_add(mat1,mat2,out)
+-MAT	*mat1,*mat2,*out;
+-{
+-	u_int	m,n,i;
+-
+-	if ( mat1==(MAT *)NULL || mat2==(MAT *)NULL )
+-		error(E_NULL,"m_add");
+-	if ( mat1->m != mat2->m || mat1->n != mat2->n )
+-		error(E_SIZES,"m_add");
+-	if ( out==(MAT *)NULL || out->m != mat1->m || out->n != mat1->n )
+-		out = m_resize(out,mat1->m,mat1->n);
+-	m = mat1->m;	n = mat1->n;
+-	for ( i=0; i<m; i++ )
+-	{
+-		__add__(mat1->me[i],mat2->me[i],out->me[i],(int)n);
+-		/**************************************************
+-		for ( j=0; j<n; j++ )
+-			out->me[i][j] = mat1->me[i][j]+mat2->me[i][j];
+-		**************************************************/
+-	}
+-
+-	return (out);
+-}
+-
+-/* m_sub -- matrix subtraction -- may be in-situ */
+-MAT	*m_sub(mat1,mat2,out)
+-MAT	*mat1,*mat2,*out;
+-{
+-	u_int	m,n,i;
+-
+-	if ( mat1==(MAT *)NULL || mat2==(MAT *)NULL )
+-		error(E_NULL,"m_sub");
+-	if ( mat1->m != mat2->m || mat1->n != mat2->n )
+-		error(E_SIZES,"m_sub");
+-	if ( out==(MAT *)NULL || out->m != mat1->m || out->n != mat1->n )
+-		out = m_resize(out,mat1->m,mat1->n);
+-	m = mat1->m;	n = mat1->n;
+-	for ( i=0; i<m; i++ )
+-	{
+-		__sub__(mat1->me[i],mat2->me[i],out->me[i],(int)n);
+-		/**************************************************
+-		for ( j=0; j<n; j++ )
+-			out->me[i][j] = mat1->me[i][j]-mat2->me[i][j];
+-		**************************************************/
+-	}
+-
+-	return (out);
+-}
+-
+-/* m_mlt -- matrix-matrix multiplication */
+-MAT	*m_mlt(A,B,OUT)
+-MAT	*A,*B,*OUT;
+-{
+-	u_int	i, /* j, */ k, m, n, p;
+-	Real	**A_v, **B_v /*, *B_row, *OUT_row, sum, tmp */;
+-
+-	if ( A==(MAT *)NULL || B==(MAT *)NULL )
+-		error(E_NULL,"m_mlt");
+-	if ( A->n != B->m )
+-		error(E_SIZES,"m_mlt");
+-	if ( A == OUT || B == OUT )
+-		error(E_INSITU,"m_mlt");
+-	m = A->m;	n = A->n;	p = B->n;
+-	A_v = A->me;		B_v = B->me;
+-
+-	if ( OUT==(MAT *)NULL || OUT->m != A->m || OUT->n != B->n )
+-		OUT = m_resize(OUT,A->m,B->n);
+-
+-/****************************************************************
+-	for ( i=0; i<m; i++ )
+-		for  ( j=0; j<p; j++ )
+-		{
+-			sum = 0.0;
+-			for ( k=0; k<n; k++ )
+-				sum += A_v[i][k]*B_v[k][j];
+-			OUT->me[i][j] = sum;
+-		}
+-****************************************************************/
+-	m_zero(OUT);
+-	for ( i=0; i<m; i++ )
+-		for ( k=0; k<n; k++ )
+-		{
+-		    if ( A_v[i][k] != 0.0 )
+-		        __mltadd__(OUT->me[i],B_v[k],A_v[i][k],(int)p);
+-		    /**************************************************
+-		    B_row = B_v[k];	OUT_row = OUT->me[i];
+-		    for ( j=0; j<p; j++ )
+-			(*OUT_row++) += tmp*(*B_row++);
+-		    **************************************************/
+-		}
+-
+-	return OUT;
+-}
+-
+-/* mmtr_mlt -- matrix-matrix transposed multiplication
+-	-- A.B^T is returned, and stored in OUT */
+-MAT	*mmtr_mlt(A,B,OUT)
+-MAT	*A, *B, *OUT;
+-{
+-	int	i, j, limit;
+-	/* Real	*A_row, *B_row, sum; */
+-
+-	if ( ! A || ! B )
+-		error(E_NULL,"mmtr_mlt");
+-	if ( A == OUT || B == OUT )
+-		error(E_INSITU,"mmtr_mlt");
+-	if ( A->n != B->n )
+-		error(E_SIZES,"mmtr_mlt");
+-	if ( ! OUT || OUT->m != A->m || OUT->n != B->m )
+-		OUT = m_resize(OUT,A->m,B->m);
+-
+-	limit = A->n;
+-	for ( i = 0; i < A->m; i++ )
+-		for ( j = 0; j < B->m; j++ )
+-		{
+-		    OUT->me[i][j] = __ip__(A->me[i],B->me[j],(int)limit);
+-		    /**************************************************
+-		    sum = 0.0;
+-		    A_row = A->me[i];
+-		    B_row = B->me[j];
+-		    for ( k = 0; k < limit; k++ )
+-			sum += (*A_row++)*(*B_row++);
+-		    OUT->me[i][j] = sum;
+-		    **************************************************/
+-		}
+-
+-	return OUT;
+-}
+-
+-/* mtrm_mlt -- matrix transposed-matrix multiplication
+-	-- A^T.B is returned, result stored in OUT */
+-MAT	*mtrm_mlt(A,B,OUT)
+-MAT	*A, *B, *OUT;
+-{
+-	int	i, k, limit;
+-	/* Real	*B_row, *OUT_row, multiplier; */
+-
+-	if ( ! A || ! B )
+-		error(E_NULL,"mmtr_mlt");
+-	if ( A == OUT || B == OUT )
+-		error(E_INSITU,"mtrm_mlt");
+-	if ( A->m != B->m )
+-		error(E_SIZES,"mmtr_mlt");
+-	if ( ! OUT || OUT->m != A->n || OUT->n != B->n )
+-		OUT = m_resize(OUT,A->n,B->n);
+-
+-	limit = B->n;
+-	m_zero(OUT);
+-	for ( k = 0; k < A->m; k++ )
+-		for ( i = 0; i < A->n; i++ )
+-		{
+-		    if ( A->me[k][i] != 0.0 )
+-			__mltadd__(OUT->me[i],B->me[k],A->me[k][i],(int)limit);
+-		    /**************************************************
+-		    multiplier = A->me[k][i];
+-		    OUT_row = OUT->me[i];
+-		    B_row   = B->me[k];
+-		    for ( j = 0; j < limit; j++ )
+-			*(OUT_row++) += multiplier*(*B_row++);
+-		    **************************************************/
+-		}
+-
+-	return OUT;
+-}
+-
+-/* mv_mlt -- matrix-vector multiplication 
+-		-- Note: b is treated as a column vector */
+-VEC	*mv_mlt(A,b,out)
+-MAT	*A;
+-VEC	*b,*out;
+-{
+-	u_int	i, m, n;
+-	Real	**A_v, *b_v /*, *A_row */;
+-	/* register Real	sum; */
+-
+-	if ( A==(MAT *)NULL || b==(VEC *)NULL )
+-		error(E_NULL,"mv_mlt");
+-	if ( A->n != b->dim )
+-		error(E_SIZES,"mv_mlt");
+-	if ( b == out )
+-		error(E_INSITU,"mv_mlt");
+-	if ( out == (VEC *)NULL || out->dim != A->m )
+-		out = v_resize(out,A->m);
+-
+-	m = A->m;		n = A->n;
+-	A_v = A->me;		b_v = b->ve;
+-	for ( i=0; i<m; i++ )
+-	{
+-		/* for ( j=0; j<n; j++ )
+-			sum += A_v[i][j]*b_v[j]; */
+-		out->ve[i] = __ip__(A_v[i],b_v,(int)n);
+-		/**************************************************
+-		A_row = A_v[i];		b_v = b->ve;
+-		for ( j=0; j<n; j++ )
+-			sum += (*A_row++)*(*b_v++);
+-		out->ve[i] = sum;
+-		**************************************************/
+-	}
+-
+-	return out;
+-}
+-
+-/* sm_mlt -- scalar-matrix multiply -- may be in-situ */
+-MAT	*sm_mlt(scalar,matrix,out)
+-double	scalar;
+-MAT	*matrix,*out;
+-{
+-	u_int	m,n,i;
+-
+-	if ( matrix==(MAT *)NULL )
+-		error(E_NULL,"sm_mlt");
+-	if ( out==(MAT *)NULL || out->m != matrix->m || out->n != matrix->n )
+-		out = m_resize(out,matrix->m,matrix->n);
+-	m = matrix->m;	n = matrix->n;
+-	for ( i=0; i<m; i++ )
+-		__smlt__(matrix->me[i],(double)scalar,out->me[i],(int)n);
+-		/**************************************************
+-		for ( j=0; j<n; j++ )
+-			out->me[i][j] = scalar*matrix->me[i][j];
+-		**************************************************/
+-	return (out);
+-}
+-
+-/* vm_mlt -- vector-matrix multiplication 
+-		-- Note: b is treated as a row vector */
+-VEC	*vm_mlt(A,b,out)
+-MAT	*A;
+-VEC	*b,*out;
+-{
+-	u_int	j,m,n;
+-	/* Real	sum,**A_v,*b_v; */
+-
+-	if ( A==(MAT *)NULL || b==(VEC *)NULL )
+-		error(E_NULL,"vm_mlt");
+-	if ( A->m != b->dim )
+-		error(E_SIZES,"vm_mlt");
+-	if ( b == out )
+-		error(E_INSITU,"vm_mlt");
+-	if ( out == (VEC *)NULL || out->dim != A->n )
+-		out = v_resize(out,A->n);
+-
+-	m = A->m;		n = A->n;
+-
+-	v_zero(out);
+-	for ( j = 0; j < m; j++ )
+-		if ( b->ve[j] != 0.0 )
+-		    __mltadd__(out->ve,A->me[j],b->ve[j],(int)n);
+-	/**************************************************
+-	A_v = A->me;		b_v = b->ve;
+-	for ( j=0; j<n; j++ )
+-	{
+-		sum = 0.0;
+-		for ( i=0; i<m; i++ )
+-			sum += b_v[i]*A_v[i][j];
+-		out->ve[j] = sum;
+-	}
+-	**************************************************/
+-
+-	return out;
+-}
+-
+-/* m_transp -- transpose matrix */
+-MAT	*m_transp(in,out)
+-MAT	*in, *out;
+-{
+-	int	i, j;
+-	int	in_situ;
+-	Real	tmp;
+-
+-	if ( in == (MAT *)NULL )
+-		error(E_NULL,"m_transp");
+-	if ( in == out && in->n != in->m )
+-		error(E_INSITU2,"m_transp");
+-	in_situ = ( in == out );
+-	if ( out == (MAT *)NULL || out->m != in->n || out->n != in->m )
+-		out = m_resize(out,in->n,in->m);
+-
+-	if ( ! in_situ )
+-		for ( i = 0; i < in->m; i++ )
+-			for ( j = 0; j < in->n; j++ )
+-				out->me[j][i] = in->me[i][j];
+-	else
+-		for ( i = 1; i < in->m; i++ )
+-			for ( j = 0; j < i; j++ )
+-			{	tmp = in->me[i][j];
+-				in->me[i][j] = in->me[j][i];
+-				in->me[j][i] = tmp;
+-			}
+-
+-	return out;
+-}
+-
+-/* swap_rows -- swaps rows i and j of matrix A upto column lim */
+-MAT	*swap_rows(A,i,j,lo,hi)
+-MAT	*A;
+-int	i, j, lo, hi;
+-{
+-	int	k;
+-	Real	**A_me, tmp;
+-
+-	if ( ! A )
+-		error(E_NULL,"swap_rows");
+-	if ( i < 0 || j < 0 || i >= A->m || j >= A->m )
+-		error(E_SIZES,"swap_rows");
+-	lo = max(0,lo);
+-	hi = min(hi,A->n-1);
+-	A_me = A->me;
+-
+-	for ( k = lo; k <= hi; k++ )
+-	{
+-		tmp = A_me[k][i];
+-		A_me[k][i] = A_me[k][j];
+-		A_me[k][j] = tmp;
+-	}
+-	return A;
+-}
+-
+-/* swap_cols -- swap columns i and j of matrix A upto row lim */
+-MAT	*swap_cols(A,i,j,lo,hi)
+-MAT	*A;
+-int	i, j, lo, hi;
+-{
+-	int	k;
+-	Real	**A_me, tmp;
+-
+-	if ( ! A )
+-		error(E_NULL,"swap_cols");
+-	if ( i < 0 || j < 0 || i >= A->n || j >= A->n )
+-		error(E_SIZES,"swap_cols");
+-	lo = max(0,lo);
+-	hi = min(hi,A->m-1);
+-	A_me = A->me;
+-
+-	for ( k = lo; k <= hi; k++ )
+-	{
+-		tmp = A_me[i][k];
+-		A_me[i][k] = A_me[j][k];
+-		A_me[j][k] = tmp;
+-	}
+-	return A;
+-}
+-
+-/* ms_mltadd -- matrix-scalar multiply and add
+-	-- may be in situ
+-	-- returns out == A1 + s*A2 */
+-MAT	*ms_mltadd(A1,A2,s,out)
+-MAT	*A1, *A2, *out;
+-double	s;
+-{
+-	/* register Real	*A1_e, *A2_e, *out_e; */
+-	/* register int	j; */
+-	int	i, m, n;
+-
+-	if ( ! A1 || ! A2 )
+-		error(E_NULL,"ms_mltadd");
+-	if ( A1->m != A2->m || A1->n != A2->n )
+-		error(E_SIZES,"ms_mltadd");
+-
+-	if ( s == 0.0 )
+-		return m_copy(A1,out);
+-	if ( s == 1.0 )
+-		return m_add(A1,A2,out);
+-
+-	tracecatch(out = m_copy(A1,out),"ms_mltadd");
+-
+-	m = A1->m;	n = A1->n;
+-	for ( i = 0; i < m; i++ )
+-	{
+-		__mltadd__(out->me[i],A2->me[i],s,(int)n);
+-		/**************************************************
+-		A1_e = A1->me[i];
+-		A2_e = A2->me[i];
+-		out_e = out->me[i];
+-		for ( j = 0; j < n; j++ )
+-		    out_e[j] = A1_e[j] + s*A2_e[j];
+-		**************************************************/
+-	}
+-
+-	return out;
+-}
+-
+-/* mv_mltadd -- matrix-vector multiply and add
+-	-- may not be in situ
+-	-- returns out == v1 + alpha*A*v2 */
+-VEC	*mv_mltadd(v1,v2,A,alpha,out)
+-VEC	*v1, *v2, *out;
+-MAT	*A;
+-double	alpha;
+-{
+-	/* register	int	j; */
+-	int	i, m, n;
+-	Real	*v2_ve, *out_ve;
+-
+-	if ( ! v1 || ! v2 || ! A )
+-		error(E_NULL,"mv_mltadd");
+-	if ( out == v2 )
+-		error(E_INSITU,"mv_mltadd");
+-	if ( v1->dim != A->m || v2->dim != A-> n )
+-		error(E_SIZES,"mv_mltadd");
+-
+-	tracecatch(out = v_copy(v1,out),"mv_mltadd");
+-
+-	v2_ve = v2->ve;	out_ve = out->ve;
+-	m = A->m;	n = A->n;
+-
+-	if ( alpha == 0.0 )
+-	    return out;
+-
+-	for ( i = 0; i < m; i++ )
+-	{
+-		out_ve[i] += alpha*__ip__(A->me[i],v2_ve,(int)n);
+-		/**************************************************
+-		A_e = A->me[i];
+-		sum = 0.0;
+-		for ( j = 0; j < n; j++ )
+-		    sum += A_e[j]*v2_ve[j];
+-		out_ve[i] = v1->ve[i] + alpha*sum;
+-		**************************************************/
+-	}
+-
+-	return out;
+-}
+-
+-/* vm_mltadd -- vector-matrix multiply and add
+-	-- may not be in situ
+-	-- returns out' == v1' + v2'*A */
+-VEC	*vm_mltadd(v1,v2,A,alpha,out)
+-VEC	*v1, *v2, *out;
+-MAT	*A;
+-double	alpha;
+-{
+-	int	/* i, */ j, m, n;
+-	Real	tmp, /* *A_e, */ *out_ve;
+-
+-	if ( ! v1 || ! v2 || ! A )
+-		error(E_NULL,"vm_mltadd");
+-	if ( v2 == out )
+-		error(E_INSITU,"vm_mltadd");
+-	if ( v1->dim != A->n || A->m != v2->dim )
+-		error(E_SIZES,"vm_mltadd");
+-
+-	tracecatch(out = v_copy(v1,out),"vm_mltadd");
+-
+-	out_ve = out->ve;	m = A->m;	n = A->n;
+-	for ( j = 0; j < m; j++ )
+-	{
+-		tmp = v2->ve[j]*alpha;
+-		if ( tmp != 0.0 )
+-		    __mltadd__(out_ve,A->me[j],tmp,(int)n);
+-		/**************************************************
+-		A_e = A->me[j];
+-		for ( i = 0; i < n; i++ )
+-		    out_ve[i] += A_e[i]*tmp;
+-		**************************************************/
+-	}
+-
+-	return out;
+-}
+-
+//GO.SYSIN DD matop.c
+echo pxop.c 1>&2
+sed >pxop.c <<'//GO.SYSIN DD pxop.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/* pxop.c 1.5 12/03/87 */
+-
+-
+-#include	<stdio.h>
+-#include	"matrix.h"
+-
+-static	char	rcsid[] = "$Id: pxop.c,v 1.5 1994/03/23 23:58:50 des Exp $";
+-
+-/**********************************************************************
+-Note: A permutation is often interpreted as a matrix
+-		(i.e. a permutation matrix).
+-	A permutation px represents a permutation matrix P where
+-		P[i][j] == 1 if and only if px->pe[i] == j
+-**********************************************************************/
+-
+-
+-/* px_inv -- invert permutation -- in situ
+-	-- taken from ACM Collected Algorithms #250 */
+-PERM	*px_inv(px,out)
+-PERM	*px, *out;
+-{
+-    int	i, j, k, n, *p;
+-    
+-    out = px_copy(px, out);
+-    n = out->size;
+-    p = (int *)(out->pe);
+-    for ( n--; n>=0; n-- )
+-    {
+-	i = p[n];
+-	if ( i < 0 )	p[n] = -1 - i;
+-	else if ( i != n )
+-	{
+-	    k = n;
+-	    while (TRUE)
+-	    {
+-		if ( i < 0 || i >= out->size )
+-		    error(E_BOUNDS,"px_inv");
+-		j = p[i];	p[i] = -1 - k;
+-		if ( j == n )
+-		{	p[n] = i;	break;		}
+-		k = i;		i = j;
+-	    }
+-	}
+-    }
+-    return out;
+-}
+-
+-/* px_mlt -- permutation multiplication (composition) */
+-PERM	*px_mlt(px1,px2,out)
+-PERM	*px1,*px2,*out;
+-{
+-    u_int	i,size;
+-    
+-    if ( px1==(PERM *)NULL || px2==(PERM *)NULL )
+-	error(E_NULL,"px_mlt");
+-    if ( px1->size != px2->size )
+-	error(E_SIZES,"px_mlt");
+-    if ( px1 == out || px2 == out )
+-	error(E_INSITU,"px_mlt");
+-    if ( out==(PERM *)NULL || out->size < px1->size )
+-	out = px_resize(out,px1->size);
+-    
+-    size = px1->size;
+-    for ( i=0; i<size; i++ )
+-	if ( px2->pe[i] >= size )
+-	    error(E_BOUNDS,"px_mlt");
+-	else
+-	    out->pe[i] = px1->pe[px2->pe[i]];
+-    
+-    return out;
+-}
+-
+-/* px_vec -- permute vector */
+-VEC	*px_vec(px,vector,out)
+-PERM	*px;
+-VEC	*vector,*out;
+-{
+-    u_int	old_i, i, size, start;
+-    Real	tmp;
+-    
+-    if ( px==(PERM *)NULL || vector==(VEC *)NULL )
+-	error(E_NULL,"px_vec");
+-    if ( px->size > vector->dim )
+-	error(E_SIZES,"px_vec");
+-    if ( out==(VEC *)NULL || out->dim < vector->dim )
+-	out = v_resize(out,vector->dim);
+-    
+-    size = px->size;
+-    if ( size == 0 )
+-	return v_copy(vector,out);
+-    if ( out != vector )
+-    {
+-	for ( i=0; i<size; i++ )
+-	    if ( px->pe[i] >= size )
+-		error(E_BOUNDS,"px_vec");
+-	    else
+-		out->ve[i] = vector->ve[px->pe[i]];
+-    }
+-    else
+-    {	/* in situ algorithm */
+-	start = 0;
+-	while ( start < size )
+-	{
+-	    old_i = start;
+-	    i = px->pe[old_i];
+-	    if ( i >= size )
+-	    {
+-		start++;
+-		continue;
+-	    }
+-	    tmp = vector->ve[start];
+-	    while ( TRUE )
+-	    {
+-		vector->ve[old_i] = vector->ve[i];
+-		px->pe[old_i] = i+size;
+-		old_i = i;
+-		i = px->pe[old_i];
+-		if ( i >= size )
+-		    break;
+-		if ( i == start )
+-		{
+-		    vector->ve[old_i] = tmp;
+-		    px->pe[old_i] = i+size;
+-		    break;
+-		}
+-	    }
+-	    start++;
+-	}
+-
+-	for ( i = 0; i < size; i++ )
+-	    if ( px->pe[i] < size )
+-		error(E_BOUNDS,"px_vec");
+-	    else
+-		px->pe[i] = px->pe[i]-size;
+-    }
+-    
+-    return out;
+-}
+-
+-/* pxinv_vec -- apply the inverse of px to x, returning the result in out */
+-VEC	*pxinv_vec(px,x,out)
+-PERM	*px;
+-VEC	*x, *out;
+-{
+-    u_int	i, size;
+-    
+-    if ( ! px || ! x )
+-	error(E_NULL,"pxinv_vec");
+-    if ( px->size > x->dim )
+-	error(E_SIZES,"pxinv_vec");
+-    /* if ( x == out )
+-	error(E_INSITU,"pxinv_vec"); */
+-    if ( ! out || out->dim < x->dim )
+-	out = v_resize(out,x->dim);
+-    
+-    size = px->size;
+-    if ( size == 0 )
+-	return v_copy(x,out);
+-    if ( out != x )
+-    {
+-	for ( i=0; i<size; i++ )
+-	    if ( px->pe[i] >= size )
+-		error(E_BOUNDS,"pxinv_vec");
+-	    else
+-		out->ve[px->pe[i]] = x->ve[i];
+-    }
+-    else
+-    {	/* in situ algorithm --- cheat's way out */
+-	px_inv(px,px);
+-	px_vec(px,x,out);
+-	px_inv(px,px);
+-    }
+-
+-    return out;
+-}
+-
+-
+-
+-/* px_transp -- transpose elements of permutation
+-		-- Really multiplying a permutation by a transposition */
+-PERM	*px_transp(px,i1,i2)
+-PERM	*px;		/* permutation to transpose */
+-u_int	i1,i2;		/* elements to transpose */
+-{
+-	u_int	temp;
+-
+-	if ( px==(PERM *)NULL )
+-		error(E_NULL,"px_transp");
+-
+-	if ( i1 < px->size && i2 < px->size )
+-	{
+-		temp = px->pe[i1];
+-		px->pe[i1] = px->pe[i2];
+-		px->pe[i2] = temp;
+-	}
+-
+-	return px;
+-}
+-
+-/* myqsort -- a cheap implementation of Quicksort on integers
+-		-- returns number of swaps */
+-static int myqsort(a,num)
+-int	*a, num;
+-{
+-	int	i, j, tmp, v;
+-	int	numswaps;
+-
+-	numswaps = 0;
+-	if ( num <= 1 )
+-		return 0;
+-
+-	i = 0;	j = num;	v = a[0];
+-	for ( ; ; )
+-	{
+-		while ( a[++i] < v )
+-			;
+-		while ( a[--j] > v )
+-			;
+-		if ( i >= j )	break;
+-
+-		tmp = a[i];
+-		a[i] = a[j];
+-		a[j] = tmp;
+-		numswaps++;
+-	}
+-
+-	tmp = a[0];
+-	a[0] = a[j];
+-	a[j] = tmp;
+-	if ( j != 0 )
+-		numswaps++;
+-
+-	numswaps += myqsort(&a[0],j);
+-	numswaps += myqsort(&a[j+1],num-(j+1));
+-
+-	return numswaps;
+-}
+-
+-
+-/* px_sign -- compute the ``sign'' of a permutation = +/-1 where
+-		px is the product of an even/odd # transpositions */
+-int	px_sign(px)
+-PERM	*px;
+-{
+-	int	numtransp;
+-	PERM	*px2;
+-
+-	if ( px==(PERM *)NULL )
+-		error(E_NULL,"px_sign");
+-	px2 = px_copy(px,PNULL);
+-	numtransp = myqsort(px2->pe,px2->size);
+-	px_free(px2);
+-
+-	return ( numtransp % 2 ) ? -1 : 1;
+-}
+-
+-
+-/* px_cols -- permute columns of matrix A; out = A.px'
+-	-- May NOT be in situ */
+-MAT	*px_cols(px,A,out)
+-PERM	*px;
+-MAT	*A, *out;
+-{
+-	int	i, j, m, n, px_j;
+-	Real	**A_me, **out_me;
+-#ifdef ANSI_C
+-	MAT	*m_get(int, int);
+-#else
+-	extern MAT	*m_get();
+-#endif
+-
+-	if ( ! A || ! px )
+-		error(E_NULL,"px_cols");
+-	if ( px->size != A->n )
+-		error(E_SIZES,"px_cols");
+-	if ( A == out )
+-		error(E_INSITU,"px_cols");
+-	m = A->m;	n = A->n;
+-	if ( ! out || out->m != m || out->n != n )
+-		out = m_get(m,n);
+-	A_me = A->me;	out_me = out->me;
+-
+-	for ( j = 0; j < n; j++ )
+-	{
+-		px_j = px->pe[j];
+-		if ( px_j >= n )
+-		    error(E_BOUNDS,"px_cols");
+-		for ( i = 0; i < m; i++ )
+-		    out_me[i][px_j] = A_me[i][j];
+-	}
+-
+-	return out;
+-}
+-
+-/* px_rows -- permute columns of matrix A; out = px.A
+-	-- May NOT be in situ */
+-MAT	*px_rows(px,A,out)
+-PERM	*px;
+-MAT	*A, *out;
+-{
+-	int	i, j, m, n, px_i;
+-	Real	**A_me, **out_me;
+-#ifdef ANSI_C
+-	MAT	*m_get(int, int);
+-#else
+-	extern MAT	*m_get();
+-#endif
+-
+-	if ( ! A || ! px )
+-		error(E_NULL,"px_rows");
+-	if ( px->size != A->m )
+-		error(E_SIZES,"px_rows");
+-	if ( A == out )
+-		error(E_INSITU,"px_rows");
+-	m = A->m;	n = A->n;
+-	if ( ! out || out->m != m || out->n != n )
+-		out = m_get(m,n);
+-	A_me = A->me;	out_me = out->me;
+-
+-	for ( i = 0; i < m; i++ )
+-	{
+-		px_i = px->pe[i];
+-		if ( px_i >= m )
+-		    error(E_BOUNDS,"px_rows");
+-		for ( j = 0; j < n; j++ )
+-		    out_me[i][j] = A_me[px_i][j];
+-	}
+-
+-	return out;
+-}
+-
+//GO.SYSIN DD pxop.c
+echo submat.c 1>&2
+sed >submat.c <<'//GO.SYSIN DD submat.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/* 1.2 submat.c 11/25/87 */
+-
+-#include	<stdio.h>
+-#include	"matrix.h"
+-
+-static	char	rcsid[] = "$Id: submat.c,v 1.2 1994/01/13 05:28:12 des Exp $";
+-
+-
+-/* get_col -- gets a specified column of a matrix and retruns it as a vector */
+-VEC	*get_col(mat,col,vec)
+-u_int	col;
+-MAT	*mat;
+-VEC	*vec;
+-{
+-   u_int	i;
+-   
+-   if ( mat==(MAT *)NULL )
+-     error(E_NULL,"get_col");
+-   if ( col >= mat->n )
+-     error(E_RANGE,"get_col");
+-   if ( vec==(VEC *)NULL || vec->dim<mat->m )
+-     vec = v_resize(vec,mat->m);
+-   
+-   for ( i=0; i<mat->m; i++ )
+-     vec->ve[i] = mat->me[i][col];
+-   
+-   return (vec);
+-}
+-
+-/* get_row -- gets a specified row of a matrix and retruns it as a vector */
+-VEC	*get_row(mat,row,vec)
+-u_int	row;
+-MAT	*mat;
+-VEC	*vec;
+-{
+-   u_int	i;
+-   
+-   if ( mat==(MAT *)NULL )
+-     error(E_NULL,"get_row");
+-   if ( row >= mat->m )
+-     error(E_RANGE,"get_row");
+-   if ( vec==(VEC *)NULL || vec->dim<mat->n )
+-     vec = v_resize(vec,mat->n);
+-   
+-   for ( i=0; i<mat->n; i++ )
+-     vec->ve[i] = mat->me[row][i];
+-   
+-   return (vec);
+-}
+-
+-/* _set_col -- sets column of matrix to values given in vec (in situ) */
+-MAT	*_set_col(mat,col,vec,i0)
+-MAT	*mat;
+-VEC	*vec;
+-u_int	col,i0;
+-{
+-   u_int	i,lim;
+-   
+-   if ( mat==(MAT *)NULL || vec==(VEC *)NULL )
+-     error(E_NULL,"_set_col");
+-   if ( col >= mat->n )
+-     error(E_RANGE,"_set_col");
+-   lim = min(mat->m,vec->dim);
+-   for ( i=i0; i<lim; i++ )
+-     mat->me[i][col] = vec->ve[i];
+-   
+-   return (mat);
+-}
+-
+-/* _set_row -- sets row of matrix to values given in vec (in situ) */
+-MAT	*_set_row(mat,row,vec,j0)
+-MAT	*mat;
+-VEC	*vec;
+-u_int	row,j0;
+-{
+-   u_int	j,lim;
+-   
+-   if ( mat==(MAT *)NULL || vec==(VEC *)NULL )
+-     error(E_NULL,"_set_row");
+-   if ( row >= mat->m )
+-     error(E_RANGE,"_set_row");
+-   lim = min(mat->n,vec->dim);
+-   for ( j=j0; j<lim; j++ )
+-     mat->me[row][j] = vec->ve[j];
+-   
+-   return (mat);
+-}
+-
+-/* sub_mat -- returns sub-matrix of old which is formed by the rectangle
+-   from (row1,col1) to (row2,col2)
+-   -- Note: storage is shared so that altering the "new"
+-   matrix will alter the "old" matrix */
+-MAT	*sub_mat(old,row1,col1,row2,col2,new)
+-MAT	*old,*new;
+-u_int	row1,col1,row2,col2;
+-{
+-   u_int	i;
+-   
+-   if ( old==(MAT *)NULL )
+-     error(E_NULL,"sub_mat");
+-   if ( row1 > row2 || col1 > col2 || row2 >= old->m || col2 >= old->n )
+-     error(E_RANGE,"sub_mat");
+-   if ( new==(MAT *)NULL || new->m < row2-row1+1 )
+-   {
+-      new = NEW(MAT);
+-      new->me = NEW_A(row2-row1+1,Real *);
+-      if ( new==(MAT *)NULL || new->me==(Real **)NULL )
+-	error(E_MEM,"sub_mat");
+-      else if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_MAT,0,sizeof(MAT)+
+-		      (row2-row1+1)*sizeof(Real *));
+-      }
+-      
+-   }
+-   new->m = row2-row1+1;
+-   
+-   new->n = col2-col1+1;
+-   
+-   new->base = (Real *)NULL;
+-   
+-   for ( i=0; i < new->m; i++ )
+-     new->me[i] = (old->me[i+row1]) + col1;
+-   
+-   return (new);
+-}
+-
+-
+-/* sub_vec -- returns sub-vector which is formed by the elements i1 to i2
+-   -- as for sub_mat, storage is shared */
+-VEC	*sub_vec(old,i1,i2,new)
+-VEC	*old, *new;
+-int	i1, i2;
+-{
+-   if ( old == (VEC *)NULL )
+-     error(E_NULL,"sub_vec");
+-   if ( i1 > i2 || old->dim < i2 )
+-     error(E_RANGE,"sub_vec");
+-   
+-   if ( new == (VEC *)NULL )
+-     new = NEW(VEC);
+-   if ( new == (VEC *)NULL )
+-     error(E_MEM,"sub_vec");
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_VEC,0,sizeof(VEC));
+-   }
+-   
+-   
+-   new->dim = i2 - i1 + 1;
+-   new->ve = &(old->ve[i1]);
+-   
+-   return new;
+-}
+//GO.SYSIN DD submat.c
+echo init.c 1>&2
+sed >init.c <<'//GO.SYSIN DD init.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/*
+-	This is a file of routines for zero-ing, and initialising
+-	vectors, matrices and permutations.
+-	This is to be included in the matrix.a library
+-*/
+-
+-static	char	rcsid[] = "$Id: init.c,v 1.6 1994/01/13 05:36:58 des Exp $";
+-
+-#include	<stdio.h>
+-#include	"matrix.h"
+-
+-/* v_zero -- zero the vector x */
+-VEC	*v_zero(x)
+-VEC	*x;
+-{
+-	if ( x == VNULL )
+-		error(E_NULL,"v_zero");
+-
+-	__zero__(x->ve,x->dim);
+-	/* for ( i = 0; i < x->dim; i++ )
+-		x->ve[i] = 0.0; */
+-
+-	return x;
+-}
+-
+-
+-/* iv_zero -- zero the vector ix */
+-IVEC	*iv_zero(ix)
+-IVEC	*ix;
+-{
+-   int i;
+-   
+-   if ( ix == IVNULL )
+-     error(E_NULL,"iv_zero");
+-   
+-   for ( i = 0; i < ix->dim; i++ )
+-     ix->ive[i] = 0; 
+-   
+-   return ix;
+-}
+-
+-
+-/* m_zero -- zero the matrix A */
+-MAT	*m_zero(A)
+-MAT	*A;
+-{
+-	int	i, A_m, A_n;
+-	Real	**A_me;
+-
+-	if ( A == MNULL )
+-		error(E_NULL,"m_zero");
+-
+-	A_m = A->m;	A_n = A->n;	A_me = A->me;
+-	for ( i = 0; i < A_m; i++ )
+-		__zero__(A_me[i],A_n);
+-		/* for ( j = 0; j < A_n; j++ )
+-			A_me[i][j] = 0.0; */
+-
+-	return A;
+-}
+-
+-/* mat_id -- set A to being closest to identity matrix as possible
+-	-- i.e. A[i][j] == 1 if i == j and 0 otherwise */
+-MAT	*m_ident(A)
+-MAT	*A;
+-{
+-	int	i, size;
+-
+-	if ( A == MNULL )
+-		error(E_NULL,"m_ident");
+-
+-	m_zero(A);
+-	size = min(A->m,A->n);
+-	for ( i = 0; i < size; i++ )
+-		A->me[i][i] = 1.0;
+-
+-	return A;
+-}
+-	
+-/* px_ident -- set px to identity permutation */
+-PERM	*px_ident(px)
+-PERM	*px;
+-{
+-	int	i, px_size;
+-	u_int	*px_pe;
+-
+-	if ( px == PNULL )
+-		error(E_NULL,"px_ident");
+-
+-	px_size = px->size;	px_pe = px->pe;
+-	for ( i = 0; i < px_size; i++ )
+-		px_pe[i] = i;
+-
+-	return px;
+-}
+-
+-/* Pseudo random number generator data structures */
+-/* Knuth's lagged Fibonacci-based generator: See "Seminumerical Algorithms:
+-   The Art of Computer Programming" sections 3.2-3.3 */
+-
+-#ifdef ANSI_C
+-#ifndef LONG_MAX
+-#include	<limits.h>
+-#endif
+-#endif
+-
+-#ifdef LONG_MAX
+-#define MODULUS	LONG_MAX
+-#else
+-#define MODULUS	1000000000L	/* assuming long's at least 32 bits long */
+-#endif
+-#define MZ	0L
+-
+-static long mrand_list[56];
+-static int  started = FALSE;
+-static int  inext = 0, inextp = 31;
+-
+-
+-/* mrand -- pseudo-random number generator */
+-#ifdef ANSI_C
+-double mrand(void)
+-#else
+-double mrand()
+-#endif
+-{
+-    long	lval;
+-    static Real  factor = 1.0/((Real)MODULUS);
+-    
+-    if ( ! started )
+-	smrand(3127);
+-    
+-    inext = (inext >= 54) ? 0 : inext+1;
+-    inextp = (inextp >= 54) ? 0 : inextp+1;
+-
+-    lval = mrand_list[inext]-mrand_list[inextp];
+-    if ( lval < 0L )
+-	lval += MODULUS;
+-    mrand_list[inext] = lval;
+-    
+-    return (double)lval*factor;
+-}
+-
+-/* mrandlist -- fills the array a[] with len random numbers */
+-void	mrandlist(a, len)
+-Real	a[];
+-int	len;
+-{
+-    int		i;
+-    long	lval;
+-    static Real  factor = 1.0/((Real)MODULUS);
+-    
+-    if ( ! started )
+-	smrand(3127);
+-    
+-    for ( i = 0; i < len; i++ )
+-    {
+-	inext = (inext >= 54) ? 0 : inext+1;
+-	inextp = (inextp >= 54) ? 0 : inextp+1;
+-	
+-	lval = mrand_list[inext]-mrand_list[inextp];
+-	if ( lval < 0L )
+-	    lval += MODULUS;
+-	mrand_list[inext] = lval;
+-	
+-	a[i] = (Real)lval*factor;
+-    }
+-}
+-
+-
+-/* smrand -- set seed for mrand() */
+-void smrand(seed)
+-int	seed;
+-{
+-    int		i;
+-
+-    mrand_list[0] = (123413*seed) % MODULUS;
+-    for ( i = 1; i < 55; i++ )
+-	mrand_list[i] = (123413*mrand_list[i-1]) % MODULUS;
+-
+-    started = TRUE;
+-
+-    /* run mrand() through the list sufficient times to
+-       thoroughly randomise the array */
+-    for ( i = 0; i < 55*55; i++ )
+-	mrand();
+-}
+-#undef MODULUS
+-#undef MZ
+-#undef FAC
+-
+-/* v_rand -- initialises x to be a random vector, components
+-	independently & uniformly ditributed between 0 and 1 */
+-VEC	*v_rand(x)
+-VEC	*x;
+-{
+-	/* int	i; */
+-
+-	if ( ! x )
+-		error(E_NULL,"v_rand");
+-
+-	/* for ( i = 0; i < x->dim; i++ ) */
+-	    /* x->ve[i] = rand()/((Real)MAX_RAND); */
+-	    /* x->ve[i] = mrand(); */
+-	mrandlist(x->ve,x->dim);
+-
+-	return x;
+-}
+-
+-/* m_rand -- initialises A to be a random vector, components
+-	independently & uniformly distributed between 0 and 1 */
+-MAT	*m_rand(A)
+-MAT	*A;
+-{
+-	int	i /* , j */;
+-
+-	if ( ! A )
+-		error(E_NULL,"m_rand");
+-
+-	for ( i = 0; i < A->m; i++ )
+-		/* for ( j = 0; j < A->n; j++ ) */
+-		    /* A->me[i][j] = rand()/((Real)MAX_RAND); */
+-		    /* A->me[i][j] = mrand(); */
+-	    mrandlist(A->me[i],A->n);
+-
+-	return A;
+-}
+-
+-/* v_ones -- fills x with one's */
+-VEC	*v_ones(x)
+-VEC	*x;
+-{
+-	int	i;
+-
+-	if ( ! x )
+-		error(E_NULL,"v_ones");
+-
+-	for ( i = 0; i < x->dim; i++ )
+-		x->ve[i] = 1.0;
+-
+-	return x;
+-}
+-
+-/* m_ones -- fills matrix with one's */
+-MAT	*m_ones(A)
+-MAT	*A;
+-{
+-	int	i, j;
+-
+-	if ( ! A )
+-		error(E_NULL,"m_ones");
+-
+-	for ( i = 0; i < A->m; i++ )
+-		for ( j = 0; j < A->n; j++ )
+-		    A->me[i][j] = 1.0;
+-
+-	return A;
+-}
+-
+-/* v_count -- initialises x so that x->ve[i] == i */
+-VEC	*v_count(x)
+-VEC	*x;
+-{
+-	int	i;
+-
+-	if ( ! x )
+-	    error(E_NULL,"v_count");
+-
+-	for ( i = 0; i < x->dim; i++ )
+-	    x->ve[i] = (Real)i;
+-
+-	return x;
+-}
+//GO.SYSIN DD init.c
+echo otherio.c 1>&2
+sed >otherio.c <<'//GO.SYSIN DD otherio.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/*
+-	File for doing assorted I/O operations not invlolving
+-	MAT/VEC/PERM objects
+-*/
+-static	char	rcsid[] = "$Id: otherio.c,v 1.2 1994/01/13 05:34:52 des Exp $";
+-
+-#include	<stdio.h>
+-#include	<ctype.h>
+-#include	"matrix.h"
+-
+-
+-
+-/* scratch area -- enough for a single line */
+-static	char	scratch[MAXLINE+1];
+-
+-/* default value for fy_or_n */
+-static	int	y_n_dflt = TRUE;
+-
+-/* fy_or_n -- yes-or-no to question is string s
+-	-- question written to stderr, input from fp 
+-	-- if fp is NOT a tty then return y_n_dflt */
+-int	fy_or_n(fp,s)
+-FILE	*fp;
+-char	*s;
+-{
+-	char	*cp;
+-
+-	if ( ! isatty(fileno(fp)) )
+-		return y_n_dflt;
+-
+-	for ( ; ; )
+-	{
+-		fprintf(stderr,"%s (y/n) ? ",s);
+-		if ( fgets(scratch,MAXLINE,fp)==NULL )
+-			error(E_INPUT,"fy_or_n");
+-		cp = scratch;
+-		while ( isspace(*cp) )
+-			cp++;
+-		if ( *cp == 'y' || *cp == 'Y' )
+-			return TRUE;
+-		if ( *cp == 'n' || *cp == 'N' )
+-			return FALSE;
+-		fprintf(stderr,"Please reply with 'y' or 'Y' for yes ");
+-		fprintf(stderr,"and 'n' or 'N' for no.\n");
+-	}
+-}
+-
+-/* yn_dflt -- sets the value of y_n_dflt to val */
+-int	yn_dflt(val)
+-int	val;
+-{	return y_n_dflt = val;		}
+-
+-/* fin_int -- return integer read from file/stream fp
+-	-- prompt s on stderr if fp is a tty
+-	-- check that x lies between low and high: re-prompt if
+-		fp is a tty, error exit otherwise
+-	-- ignore check if low > high		*/
+-int	fin_int(fp,s,low,high)
+-FILE	*fp;
+-char	*s;
+-int	low, high;
+-{
+-	int	retcode, x;
+-
+-	if ( ! isatty(fileno(fp)) )
+-	{
+-		skipjunk(fp);
+-		if ( (retcode=fscanf(fp,"%d",&x)) == EOF )
+-			error(E_INPUT,"fin_int");
+-		if ( retcode <= 0 )
+-			error(E_FORMAT,"fin_int");
+-		if ( low <= high && ( x < low || x > high ) )
+-			error(E_BOUNDS,"fin_int");
+-		return x;
+-	}
+-
+-	for ( ; ; )
+-	{
+-		fprintf(stderr,"%s: ",s);
+-		if ( fgets(scratch,MAXLINE,stdin)==NULL )
+-			error(E_INPUT,"fin_int");
+-		retcode = sscanf(scratch,"%d",&x);
+-		if ( ( retcode==1 && low > high ) ||
+-					( x >= low && x <= high ) )
+-			return x;
+-		fprintf(stderr,"Please type an integer in range [%d,%d].\n",
+-							low,high);
+-	}
+-}
+-
+-
+-/* fin_double -- return double read from file/stream fp
+-	-- prompt s on stderr if fp is a tty
+-	-- check that x lies between low and high: re-prompt if
+-		fp is a tty, error exit otherwise
+-	-- ignore check if low > high		*/
+-double	fin_double(fp,s,low,high)
+-FILE	*fp;
+-char	*s;
+-double	low, high;
+-{
+-	Real	retcode, x;
+-
+-	if ( ! isatty(fileno(fp)) )
+-	{
+-		skipjunk(fp);
+-#if REAL == DOUBLE
+-		if ( (retcode=fscanf(fp,"%lf",&x)) == EOF )
+-#elif REAL == FLOAT
+-		if ( (retcode=fscanf(fp,"%f",&x)) == EOF )
+-#endif
+-			error(E_INPUT,"fin_double");
+-		if ( retcode <= 0 )
+-			error(E_FORMAT,"fin_double");
+-		if ( low <= high && ( x < low || x > high ) )
+-			error(E_BOUNDS,"fin_double");
+-		return (double)x;
+-	}
+-
+-	for ( ; ; )
+-	{
+-		fprintf(stderr,"%s: ",s);
+-		if ( fgets(scratch,MAXLINE,stdin)==NULL )
+-			error(E_INPUT,"fin_double");
+-#if REAL == DOUBLE
+-		retcode = sscanf(scratch,"%lf",&x);
+-#elif REAL == FLOAT 
+-		retcode = sscanf(scratch,"%f",&x);
+-#endif
+-		if ( ( retcode==1 && low > high ) ||
+-					( x >= low && x <= high ) )
+-			return (double)x;
+-		fprintf(stderr,"Please type an double in range [%g,%g].\n",
+-							low,high);
+-	}
+-}
+-
+-
+//GO.SYSIN DD otherio.c
+echo machine.c 1>&2
+sed >machine.c <<'//GO.SYSIN DD machine.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Stewart & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-/*
+-  This file contains basic routines which are used by the functions
+-  in meschach.a etc.
+-  These are the routines that should be modified in order to take
+-  full advantage of specialised architectures (pipelining, vector
+-  processors etc).
+-  */
+-
+-static	char	*rcsid = "$Id: machine.c,v 1.4 1994/01/13 05:28:56 des Exp $";
+-
+-#include	"machine.h"
+-
+-/* __ip__ -- inner product */
+-double	__ip__(dp1,dp2,len)
+-register Real	*dp1, *dp2;
+-int	len;
+-{
+-#ifdef VUNROLL
+-    register int	len4;
+-    register Real	sum1, sum2, sum3;
+-#endif
+-    register int	i;
+-    register Real     sum;
+-
+-    sum = 0.0;
+-#ifdef VUNROLL
+-    sum1 = sum2 = sum3 = 0.0;
+-    
+-    len4 = len / 4;
+-    len  = len % 4;
+-    
+-    for ( i = 0; i < len4; i++ )
+-    {
+-	sum  += dp1[4*i]*dp2[4*i];
+-	sum1 += dp1[4*i+1]*dp2[4*i+1];
+-	sum2 += dp1[4*i+2]*dp2[4*i+2];
+-	sum3 += dp1[4*i+3]*dp2[4*i+3];
+-    }
+-    sum  += sum1 + sum2 + sum3;
+-    dp1 += 4*len4;	dp2 += 4*len4;
+-#endif
+-    
+-    for ( i = 0; i < len; i++ )
+-	sum  += dp1[i]*dp2[i];
+-    
+-    return sum;
+-}
+-
+-/* __mltadd__ -- scalar multiply and add c.f. v_mltadd() */
+-void	__mltadd__(dp1,dp2,s,len)
+-register Real	*dp1, *dp2;
+-register double s;
+-register int	len;
+-{
+-    register int	i;
+-#ifdef VUNROLL
+-    register int        len4;
+-    
+-    len4 = len / 4;
+-    len  = len % 4;
+-    for ( i = 0; i < len4; i++ )
+-    {
+-	dp1[4*i]   += s*dp2[4*i];
+-	dp1[4*i+1] += s*dp2[4*i+1];
+-	dp1[4*i+2] += s*dp2[4*i+2];
+-	dp1[4*i+3] += s*dp2[4*i+3];
+-    }
+-    dp1 += 4*len4;	dp2 += 4*len4;
+-#endif
+-    
+-    for ( i = 0; i < len; i++ )
+-	dp1[i] += s*dp2[i];
+-}
+-
+-/* __smlt__ scalar multiply array c.f. sv_mlt() */
+-void	__smlt__(dp,s,out,len)
+-register Real	*dp, *out;
+-register double s;
+-register int	len;
+-{
+-    register int	i;
+-    for ( i = 0; i < len; i++ )
+-	out[i] = s*dp[i];
+-}
+-
+-/* __add__ -- add arrays c.f. v_add() */
+-void	__add__(dp1,dp2,out,len)
+-register Real	*dp1, *dp2, *out;
+-register int	len;
+-{
+-    register int	i;
+-    for ( i = 0; i < len; i++ )
+-	out[i] = dp1[i] + dp2[i];
+-}
+-
+-/* __sub__ -- subtract arrays c.f. v_sub() */
+-void	__sub__(dp1,dp2,out,len)
+-register Real	*dp1, *dp2, *out;
+-register int	len;
+-{
+-    register int	i;
+-    for ( i = 0; i < len; i++ )
+-	out[i] = dp1[i] - dp2[i];
+-}
+-
+-/* __zero__ -- zeros an array of floating point numbers */
+-void	__zero__(dp,len)
+-register Real	*dp;
+-register int	len;
+-{
+-#ifdef CHAR0ISDBL0
+-    /* if a floating point zero is equivalent to a string of nulls */
+-    MEM_ZERO((char *)dp,len*sizeof(Real));
+-#else
+-    /* else, need to zero the array entry by entry */
+-    int	i;
+-    for ( i = 0; i < len; i++ )
+-	dp[i] = 0.0;
+-#endif
+-}
+-
+//GO.SYSIN DD machine.c
+echo matlab.c 1>&2
+sed >matlab.c <<'//GO.SYSIN DD matlab.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/*
+-	This file contains routines for import/exporting data to/from
+-		MATLAB. The main routines are:
+-			MAT *m_save(FILE *fp,MAT *A,char *name)
+-			VEC *v_save(FILE *fp,VEC *x,char *name)
+-			MAT *m_load(FILE *fp,char **name)
+-*/
+-
+-#include        <stdio.h>
+-#include        "matrix.h"
+-#include	"matlab.h"
+-
+-static char rcsid[] = "$Id: matlab.c,v 1.7 1994/01/13 05:30:09 des Exp $";
+-
+-/* m_save -- save matrix in ".mat" file for MATLAB
+-	-- returns matrix to be saved */
+-MAT     *m_save(fp,A,name)
+-FILE    *fp;
+-MAT     *A;
+-char    *name;
+-{
+-	int     i;
+-	matlab  mat;
+-
+-	if ( ! A )
+-		error(E_NULL,"m_save");
+-
+-	mat.type = 1000*MACH_ID + 100*ORDER + 10*PRECISION + 0;
+-	mat.m = A->m;
+-	mat.n = A->n;
+-	mat.imag = FALSE;
+-	mat.namlen = (name == (char *)NULL) ? 1 : strlen(name)+1;
+-
+-	/* write header */
+-	fwrite(&mat,sizeof(matlab),1,fp);
+-	/* write name */
+-	if ( name == (char *)NULL )
+-		fwrite("",sizeof(char),1,fp);
+-	else
+-		fwrite(name,sizeof(char),(int)(mat.namlen),fp);
+-	/* write actual data */
+-	for ( i = 0; i < A->m; i++ )
+-		fwrite(A->me[i],sizeof(Real),(int)(A->n),fp);
+-
+-	return A;
+-}
+-
+-
+-/* v_save -- save vector in ".mat" file for MATLAB
+-	-- saves it as a row vector
+-	-- returns vector to be saved */
+-VEC     *v_save(fp,x,name)
+-FILE    *fp;
+-VEC     *x;
+-char    *name;
+-{
+-	matlab  mat;
+-
+-	if ( ! x )
+-		error(E_NULL,"v_save");
+-
+-	mat.type = 1000*MACH_ID + 100*ORDER + 10*PRECISION + 0;
+-	mat.m = x->dim;
+-	mat.n = 1;
+-	mat.imag = FALSE;
+-	mat.namlen = (name == (char *)NULL) ? 1 : strlen(name)+1;
+-
+-	/* write header */
+-	fwrite(&mat,sizeof(matlab),1,fp);
+-	/* write name */
+-	if ( name == (char *)NULL )
+-		fwrite("",sizeof(char),1,fp);
+-	else
+-		fwrite(name,sizeof(char),(int)(mat.namlen),fp);
+-	/* write actual data */
+-	fwrite(x->ve,sizeof(Real),(int)(x->dim),fp);
+-
+-	return x;
+-}
+-
+-/* d_save -- save double in ".mat" file for MATLAB
+-	-- saves it as a row vector
+-	-- returns vector to be saved */
+-double	d_save(fp,x,name)
+-FILE    *fp;
+-double	x;
+-char    *name;
+-{
+-	matlab  mat;
+-	Real x1 = x;
+-
+-	mat.type = 1000*MACH_ID + 100*ORDER + 10*PRECISION + 0;
+-	mat.m = 1;
+-	mat.n = 1;
+-	mat.imag = FALSE;
+-	mat.namlen = (name == (char *)NULL) ? 1 : strlen(name)+1;
+-
+-	/* write header */
+-	fwrite(&mat,sizeof(matlab),1,fp);
+-	/* write name */
+-	if ( name == (char *)NULL )
+-		fwrite("",sizeof(char),1,fp);
+-	else
+-		fwrite(name,sizeof(char),(int)(mat.namlen),fp);
+-	/* write actual data */
+-	fwrite(&x1,sizeof(Real),1,fp);
+-
+-	return x;
+-}
+-
+-/* m_load -- loads in a ".mat" file variable as produced by MATLAB
+-	-- matrix returned; imaginary parts ignored */
+-MAT     *m_load(fp,name)
+-FILE    *fp;
+-char    **name;
+-{
+-	MAT     *A;
+-	int     i;
+-	int     m_flag, o_flag, p_flag, t_flag;
+-	float   f_temp;
+-	Real    d_temp;
+-	matlab  mat;
+-
+-	if ( fread(&mat,sizeof(matlab),1,fp) != 1 )
+-	    error(E_FORMAT,"m_load");
+-	if ( mat.type >= 10000 )	/* don't load a sparse matrix! */
+-	    error(E_FORMAT,"m_load");
+-	m_flag = (mat.type/1000) % 10;
+-	o_flag = (mat.type/100) % 10;
+-	p_flag = (mat.type/10) % 10;
+-	t_flag = (mat.type) % 10;
+-	if ( m_flag != MACH_ID )
+-		error(E_FORMAT,"m_load");
+-	if ( t_flag != 0 )
+-		error(E_FORMAT,"m_load");
+-	if ( p_flag != DOUBLE_PREC && p_flag != SINGLE_PREC )
+-		error(E_FORMAT,"m_load");
+-	*name = (char *)malloc((unsigned)(mat.namlen)+1);
+-	if ( fread(*name,sizeof(char),(unsigned)(mat.namlen),fp) == 0 )
+-		error(E_FORMAT,"m_load");
+-	A = m_get((unsigned)(mat.m),(unsigned)(mat.n));
+-	for ( i = 0; i < A->m*A->n; i++ )
+-	{
+-		if ( p_flag == DOUBLE_PREC )
+-		    fread(&d_temp,sizeof(double),1,fp);
+-		else
+-		{
+-		    fread(&f_temp,sizeof(float),1,fp);
+-		    d_temp = f_temp;
+-		}
+-		if ( o_flag == ROW_ORDER )
+-		    A->me[i / A->n][i % A->n] = d_temp;
+-		else if ( o_flag == COL_ORDER )
+-		    A->me[i % A->m][i / A->m] = d_temp;
+-		else
+-		    error(E_FORMAT,"m_load");
+-	}
+-
+-	if ( mat.imag )         /* skip imaginary part */
+-	for ( i = 0; i < A->m*A->n; i++ )
+-	{
+-		if ( p_flag == DOUBLE_PREC )
+-		    fread(&d_temp,sizeof(double),1,fp);
+-		else
+-		    fread(&f_temp,sizeof(float),1,fp);
+-	}
+-
+-	return A;
+-}
+-
+//GO.SYSIN DD matlab.c
+echo ivecop.c 1>&2
+sed >ivecop.c <<'//GO.SYSIN DD ivecop.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/* ivecop.c  */
+-
+-#include	<stdio.h>
+-#include 	"matrix.h"
+-
+-static	char	rcsid[] = "$Id: ivecop.c,v 1.5 1994/01/13 05:45:30 des Exp $";
+-
+-static char    line[MAXLINE];
+-
+-
+-
+-/* iv_get -- get integer vector -- see also memory.c */
+-IVEC	*iv_get(dim)
+-int	dim;
+-{
+-   IVEC	*iv;
+-   /* u_int	i; */
+-   
+-   if (dim < 0)
+-     error(E_NEG,"iv_get");
+-
+-   if ((iv=NEW(IVEC)) == IVNULL )
+-     error(E_MEM,"iv_get");
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_IVEC,0,sizeof(IVEC));
+-      mem_numvar(TYPE_IVEC,1);
+-   }
+-   
+-   iv->dim = iv->max_dim = dim;
+-   if ((iv->ive = NEW_A(dim,int)) == (int *)NULL )
+-     error(E_MEM,"iv_get");
+-   else if (mem_info_is_on()) {
+-      mem_bytes(TYPE_IVEC,0,dim*sizeof(int));
+-   }
+-   
+-   return (iv);
+-}
+-
+-/* iv_free -- returns iv & asoociated memory back to memory heap */
+-int	iv_free(iv)
+-IVEC	*iv;
+-{
+-   if ( iv==IVNULL || iv->dim > MAXDIM )
+-     /* don't trust it */
+-     return (-1);
+-   
+-   if ( iv->ive == (int *)NULL ) {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_IVEC,sizeof(IVEC),0);
+-	 mem_numvar(TYPE_IVEC,-1);
+-      }
+-      free((char *)iv);
+-   }
+-   else
+-   {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_IVEC,sizeof(IVEC)+iv->max_dim*sizeof(int),0);
+-	 mem_numvar(TYPE_IVEC,-1);
+-      }	
+-      free((char *)iv->ive);
+-      free((char *)iv);
+-   }
+-   
+-   return (0);
+-}
+-
+-/* iv_resize -- returns the IVEC with dimension new_dim
+-   -- iv is set to the zero vector */
+-IVEC	*iv_resize(iv,new_dim)
+-IVEC	*iv;
+-int	new_dim;
+-{
+-   int	i;
+-   
+-   if (new_dim < 0)
+-     error(E_NEG,"iv_resize");
+-
+-   if ( ! iv )
+-     return iv_get(new_dim);
+-   
+-   if (new_dim == iv->dim)
+-     return iv;
+-
+-   if ( new_dim > iv->max_dim )
+-   {
+-      if (mem_info_is_on()) {
+-	 mem_bytes(TYPE_IVEC,iv->max_dim*sizeof(int),
+-		      new_dim*sizeof(int));
+-      }
+-      iv->ive = RENEW(iv->ive,new_dim,int);
+-      if ( ! iv->ive )
+-	error(E_MEM,"iv_resize");
+-      iv->max_dim = new_dim;
+-   }
+-   if ( iv->dim <= new_dim )
+-     for ( i = iv->dim; i < new_dim; i++ )
+-       iv->ive[i] = 0;
+-   iv->dim = new_dim;
+-   
+-   return iv;
+-}
+-
+-/* iv_copy -- copy integer vector in to out
+-   -- out created/resized if necessary */
+-IVEC	*iv_copy(in,out)
+-IVEC	*in, *out;
+-{
+-   int		i;
+-   
+-   if ( ! in )
+-     error(E_NULL,"iv_copy");
+-   out = iv_resize(out,in->dim);
+-   for ( i = 0; i < in->dim; i++ )
+-     out->ive[i] = in->ive[i];
+-   
+-   return out;
+-}
+-
+-/* iv_move -- move selected pieces of an IVEC
+-	-- moves the length dim0 subvector with initial index i0
+-	   to the corresponding subvector of out with initial index i1
+-	-- out is resized if necessary */
+-IVEC	*iv_move(in,i0,dim0,out,i1)
+-IVEC	*in, *out;
+-int	i0, dim0, i1;
+-{
+-    if ( ! in )
+-	error(E_NULL,"iv_move");
+-    if ( i0 < 0 || dim0 < 0 || i1 < 0 ||
+-	 i0+dim0 > in->dim )
+-	error(E_BOUNDS,"iv_move");
+-
+-    if ( (! out) || i1+dim0 > out->dim )
+-	out = iv_resize(out,i1+dim0);
+-
+-    MEM_COPY(&(in->ive[i0]),&(out->ive[i1]),dim0*sizeof(int));
+-
+-    return out;
+-}
+-
+-/* iv_add -- integer vector addition -- may be in-situ */
+-IVEC	*iv_add(iv1,iv2,out)
+-IVEC	*iv1,*iv2,*out;
+-{
+-   u_int	i;
+-   int	*out_ive, *iv1_ive, *iv2_ive;
+-   
+-   if ( iv1==IVNULL || iv2==IVNULL )
+-     error(E_NULL,"iv_add");
+-   if ( iv1->dim != iv2->dim )
+-     error(E_SIZES,"iv_add");
+-   if ( out==IVNULL || out->dim != iv1->dim )
+-     out = iv_resize(out,iv1->dim);
+-   
+-   out_ive = out->ive;
+-   iv1_ive = iv1->ive;
+-   iv2_ive = iv2->ive;
+-   
+-   for ( i = 0; i < iv1->dim; i++ )
+-     out_ive[i] = iv1_ive[i] + iv2_ive[i];
+-   
+-   return (out);
+-}
+-
+-
+-
+-/* iv_sub -- integer vector addition -- may be in-situ */
+-IVEC	*iv_sub(iv1,iv2,out)
+-IVEC	*iv1,*iv2,*out;
+-{
+-   u_int	i;
+-   int	*out_ive, *iv1_ive, *iv2_ive;
+-   
+-   if ( iv1==IVNULL || iv2==IVNULL )
+-     error(E_NULL,"iv_sub");
+-   if ( iv1->dim != iv2->dim )
+-     error(E_SIZES,"iv_sub");
+-   if ( out==IVNULL || out->dim != iv1->dim )
+-     out = iv_resize(out,iv1->dim);
+-   
+-   out_ive = out->ive;
+-   iv1_ive = iv1->ive;
+-   iv2_ive = iv2->ive;
+-   
+-   for ( i = 0; i < iv1->dim; i++ )
+-     out_ive[i] = iv1_ive[i] - iv2_ive[i];
+-   
+-   return (out);
+-}
+-
+-/* iv_foutput -- print a representation of iv on stream fp */
+-void	iv_foutput(fp,iv)
+-FILE	*fp;
+-IVEC	*iv;
+-{
+-   int	i;
+-   
+-   fprintf(fp,"IntVector: ");
+-   if ( iv == IVNULL )
+-   {
+-      fprintf(fp,"**** NULL ****\n");
+-      return;
+-   }
+-   fprintf(fp,"dim: %d\n",iv->dim);
+-   for ( i = 0; i < iv->dim; i++ )
+-   {
+-      if ( (i+1) % 8 )
+-	fprintf(fp,"%8d ",iv->ive[i]);
+-      else
+-	fprintf(fp,"%8d\n",iv->ive[i]);
+-   }
+-   if ( i % 8 )
+-     fprintf(fp,"\n");
+-}
+-
+-
+-/* iv_finput -- input integer vector from stream fp */
+-IVEC	*iv_finput(fp,x)
+-FILE	*fp;
+-IVEC	*x;
+-{
+-   IVEC	*iiv_finput(),*biv_finput();
+-   
+-   if ( isatty(fileno(fp)) )
+-     return iiv_finput(fp,x);
+-   else
+-     return biv_finput(fp,x);
+-}
+-
+-/* iiv_finput -- interactive input of IVEC iv */
+-IVEC	*iiv_finput(fp,iv)
+-FILE	*fp;
+-IVEC	*iv;
+-{
+-   u_int	i,dim,dynamic;	/* dynamic set if memory allocated here */
+-   
+-   /* get dimension */
+-   if ( iv != (IVEC *)NULL && iv->dim<MAXDIM )
+-   {	dim = iv->dim;	dynamic = FALSE;	}
+-   else
+-   {
+-      dynamic = TRUE;
+-      do
+-      {
+-	 fprintf(stderr,"IntVector: dim: ");
+-	 if ( fgets(line,MAXLINE,fp)==NULL )
+-	   error(E_INPUT,"iiv_finput");
+-      } while ( sscanf(line,"%u",&dim)<1 || dim>MAXDIM );
+-      iv = iv_get(dim);
+-   }
+-   
+-   /* input elements */
+-   for ( i=0; i<dim; i++ )
+-     do
+-     {
+-      redo:
+-	fprintf(stderr,"entry %u: ",i);
+-	if ( !dynamic )
+-	  fprintf(stderr,"old: %-9d  new: ",iv->ive[i]);
+-	if ( fgets(line,MAXLINE,fp)==NULL )
+-	  error(E_INPUT,"iiv_finput");
+-	if ( (*line == 'b' || *line == 'B') && i > 0 )
+-	{	i--;	dynamic = FALSE;	goto redo;	   }
+-	if ( (*line == 'f' || *line == 'F') && i < dim-1 )
+-	{	i++;	dynamic = FALSE;	goto redo;	   }
+-     } while ( *line=='\0' || sscanf(line,"%d",&iv->ive[i]) < 1 );
+-   
+-   return (iv);
+-}
+-
+-/* biv_finput -- batch-file input of IVEC iv */
+-IVEC	*biv_finput(fp,iv)
+-FILE	*fp;
+-IVEC	*iv;
+-{
+-   u_int	i,dim;
+-   int	io_code;
+-   
+-   /* get dimension */
+-   skipjunk(fp);
+-   if ((io_code=fscanf(fp," IntVector: dim:%u",&dim)) < 1 ||
+-       dim>MAXDIM )
+-     error(io_code==EOF ? 7 : 6,"biv_finput");
+-   
+-   /* allocate memory if necessary */
+-   if ( iv==(IVEC *)NULL || iv->dim<dim )
+-     iv = iv_resize(iv,dim);
+-   
+-   /* get entries */
+-   skipjunk(fp);
+-   for ( i=0; i<dim; i++ )
+-     if ((io_code=fscanf(fp,"%d",&iv->ive[i])) < 1 )
+-       error(io_code==EOF ? 7 : 6,"biv_finput");
+-   
+-   return (iv);
+-}
+-
+-/* iv_dump -- dumps all the contents of IVEC iv onto stream fp */
+-void	iv_dump(fp,iv)
+-FILE*fp;
+-IVEC*iv;
+-{
+-   int		i;
+-   
+-   fprintf(fp,"IntVector: ");
+-   if ( ! iv )
+-   {
+-      fprintf(fp,"**** NULL ****\n");
+-      return;
+-   }
+-   fprintf(fp,"dim: %d, max_dim: %d\n",iv->dim,iv->max_dim);
+-   fprintf(fp,"ive @ 0x%lx\n",(long)(iv->ive));
+-   for ( i = 0; i < iv->max_dim; i++ )
+-   {
+-      if ( (i+1) % 8 )
+-	fprintf(fp,"%8d ",iv->ive[i]);
+-      else
+-	fprintf(fp,"%8d\n",iv->ive[i]);
+-   }
+-   if ( i % 8 )
+-     fprintf(fp,"\n");
+-}	
+-
+-#define	MAX_STACK	60
+-
+-
+-/* iv_sort -- sorts vector x, and generates permutation that gives the order
+-   of the components; x = [1.3, 3.7, 0.5] -> [0.5, 1.3, 3.7] and
+-   the permutation is order = [2, 0, 1].
+-   -- if order is NULL on entry then it is ignored
+-   -- the sorted vector x is returned */
+-IVEC	*iv_sort(x, order)
+-IVEC	*x;
+-PERM	*order;
+-{
+-   int		*x_ive, tmp, v;
+-   /* int		*order_pe; */
+-   int		dim, i, j, l, r, tmp_i;
+-   int		stack[MAX_STACK], sp;
+-   
+-   if ( ! x )
+-     error(E_NULL,"v_sort");
+-   if ( order != PNULL && order->size != x->dim )
+-     order = px_resize(order, x->dim);
+-   
+-   x_ive = x->ive;
+-   dim = x->dim;
+-   if ( order != PNULL )
+-     px_ident(order);
+-   
+-   if ( dim <= 1 )
+-     return x;
+-   
+-   /* using quicksort algorithm in Sedgewick,
+-      "Algorithms in C", Ch. 9, pp. 118--122 (1990) */
+-   sp = 0;
+-   l = 0;	r = dim-1;	v = x_ive[0];
+-   for ( ; ; )
+-   {
+-      while ( r > l )
+-      {
+-	 /* "i = partition(x_ive,l,r);" */
+-	 v = x_ive[r];
+-	 i = l-1;
+-	 j = r;
+-	 for ( ; ; )
+-	 {
+-	    while ( x_ive[++i] < v )
+-	      ;
+-	    while ( x_ive[--j] > v )
+-	      ;
+-	    if ( i >= j )	break;
+-	    
+-	    tmp = x_ive[i];
+-	    x_ive[i] = x_ive[j];
+-	    x_ive[j] = tmp;
+-	    if ( order != PNULL )
+-	    {
+-	       tmp_i = order->pe[i];
+-	       order->pe[i] = order->pe[j];
+-	       order->pe[j] = tmp_i;
+-	    }
+-	 }
+-	 tmp = x_ive[i];
+-	 x_ive[i] = x_ive[r];
+-	 x_ive[r] = tmp;
+-	 if ( order != PNULL )
+-	 {
+-	    tmp_i = order->pe[i];
+-	    order->pe[i] = order->pe[r];
+-	    order->pe[r] = tmp_i;
+-	 }
+-	 
+-	 if ( i-l > r-i )
+-	 {   stack[sp++] = l;   stack[sp++] = i-1;   l = i+1;   }
+-	 else
+-	 {   stack[sp++] = i+1;   stack[sp++] = r;   r = i-1;   }
+-      }
+-      
+-      /* recursion elimination */
+-      if ( sp == 0 )
+-	break;
+-      r = stack[--sp];
+-      l = stack[--sp];
+-   }
+-   
+-   return x;
+-}
+//GO.SYSIN DD ivecop.c
+echo version.c 1>&2
+sed >version.c <<'//GO.SYSIN DD version.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/*			Version routine			*/
+-/*	This routine must be modified whenever modifications are made to
+-	Meschach by persons other than the original authors
+-	(David E. Stewart & Zbigniew Leyk); 
+-	when new releases of Meschach are made the
+-	version number will also be updated
+-*/
+-
+-#include	<stdio.h>
+-
+-void	m_version()
+-{
+-	static char rcsid[] = "$Id: version.c,v 1.9 1994/03/24 00:04:05 des Exp $";
+-
+-	printf("Meshach matrix library version 1.2b\n");
+-	printf("RCS id: %s\n",rcsid);
+-	printf("Changes since 1.2a:\n");
+-	printf("\t Fixed bug in schur() for 2x2 blocks with real e-vals\n");
+-	printf("\t Fixed bug in schur() reading beyond end of array\n");
+-	printf("\t Fixed some installation bugs\n");
+-	printf("\t Fixed bugs & improved efficiency in spILUfactor()\n");
+-	printf("\t px_inv() doesn't crash inverting non-permutations\n");
+-	/**** List of modifications ****/
+-	/* Example below is for illustration only */
+-	/* printf("Modified by %s, routine(s) %s, file %s on date %s\n",
+-			"Joe Bloggs",
+-			"m_version",
+-			"version.c",
+-			"Fri Apr  5 16:00:38 EST 1994"); */
+-	/* printf("Purpose: %s\n",
+-			"To update the version number"); */
+-}
+-
+-/* $Log: version.c,v $
+- * Revision 1.9  1994/03/24  00:04:05  des
+- * Added notes on changes to spILUfactor() and px_inv().
+- *
+- * Revision 1.8  1994/02/21  04:32:25  des
+- * Set version to 1.2b with bug fixes in schur() and installation.
+- *
+- * Revision 1.7  1994/01/13  05:43:57  des
+- * Version 1.2 update
+- *
+-
+- * */
+//GO.SYSIN DD version.c
+echo meminfo.c 1>&2
+sed >meminfo.c <<'//GO.SYSIN DD meminfo.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/* meminfo.c  revised  22/11/93 */
+-
+-/* 
+-  contains basic functions, types and arrays 
+-  to keep track of memory allocation/deallocation
+-*/
+-
+-#include <stdio.h>
+-#include  "matrix.h"
+-#include  "meminfo.h"
+-#ifdef COMPLEX   
+-#include  "zmatrix.h"
+-#endif
+-#ifdef SPARSE
+-#include  "sparse.h"
+-#include  "iter.h"
+-#endif
+-
+-static char rcsid[] = "$Id: meminfo.c,v 1.1 1994/01/13 05:31:39 des Exp $";
+-
+-/* this array is defined further in this file */
+-extern MEM_CONNECT mem_connect[MEM_CONNECT_MAX_LISTS];
+-
+-
+-/* names of types */
+-static char *mem_type_names[] = {
+-   "MAT",
+-   "BAND",
+-   "PERM",
+-   "VEC",
+-   "IVEC"
+-#ifdef SPARSE
+-     ,"ITER",
+-     "SPROW",
+-     "SPMAT"
+-#endif
+-#ifdef COMPLEX   
+-       ,"ZVEC",
+-       "ZMAT"
+-#endif
+-      };
+-
+-
+-#define MEM_NUM_STD_TYPES  (sizeof(mem_type_names)/sizeof(mem_type_names[0]))
+-
+-
+-/* local array for keeping track of memory */
+-static MEM_ARRAY   mem_info_sum[MEM_NUM_STD_TYPES];  
+-
+-
+-/* for freeing various types */
+-static int (*mem_free_funcs[MEM_NUM_STD_TYPES])() = {
+-   m_free,
+-   bd_free,
+-   px_free,    
+-   v_free,	
+-   iv_free
+-#ifdef SPARSE
+-     ,iter_free,	
+-     sprow_free, 
+-     sp_free
+-#endif
+-#ifdef COMPLEX
+-       ,zv_free,	
+-       zm_free
+-#endif
+-      };
+-
+-
+-
+-/* it is a global variable for passing 
+-   pointers to local arrays defined here */
+-MEM_CONNECT mem_connect[MEM_CONNECT_MAX_LISTS] = {
+- { mem_type_names, mem_free_funcs, MEM_NUM_STD_TYPES, 
+-     mem_info_sum } 
+-};
+-
+-
+-/* attach a new list of types */
+-
+-int mem_attach_list(list, ntypes, type_names, free_funcs, info_sum)
+-int list,ntypes;         /* number of a list and number of types there */
+-char *type_names[];      /* list of names of types */
+-int (*free_funcs[])();   /* list of releasing functions */
+-MEM_ARRAY info_sum[];    /* local table */
+-{
+-   if (list < 0 || list >= MEM_CONNECT_MAX_LISTS)
+-     return -1;
+-
+-   if (type_names == NULL || free_funcs == NULL 
+-       || info_sum == NULL || ntypes < 0)
+-     return -1;
+-   
+-   /* if a list exists do not overwrite */
+-   if ( mem_connect[list].ntypes != 0 )
+-     error(E_OVERWRITE,"mem_attach_list");
+-   
+-   mem_connect[list].ntypes = ntypes;
+-   mem_connect[list].type_names = type_names;
+-   mem_connect[list].free_funcs = free_funcs;
+-   mem_connect[list].info_sum = info_sum;
+-   return 0;
+-}
+-
+-
+-/* release a list of types */
+-int mem_free_vars(list)
+-int list;
+-{	
+-   if (list < 0 || list >= MEM_CONNECT_MAX_LISTS)
+-     return -1;
+-   
+-   mem_connect[list].ntypes = 0;
+-   mem_connect[list].type_names = NULL;
+-   mem_connect[list].free_funcs = NULL;
+-   mem_connect[list].info_sum = NULL;
+-   
+-   return 0;
+-}
+-
+-
+-
+-/* check if list is attached */
+-
+-int mem_is_list_attached(list)
+-int list;
+-{
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS )
+-   return FALSE;
+-
+-   if ( mem_connect[list].type_names != NULL &&
+-        mem_connect[list].free_funcs != NULL &&
+-        mem_connect[list].info_sum != NULL)
+-     return TRUE;
+-   else return FALSE;
+-}
+-
+-/* to print out the contents of mem_connect[list] */
+-
+-void mem_dump_list(fp,list)
+-FILE *fp;
+-int list;
+-{
+-   int i;
+-   MEM_CONNECT *mlist;
+-
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS )
+-     return;
+-
+-   mlist = &mem_connect[list];
+-   fprintf(fp," %15s[%d]:\n","CONTENTS OF mem_connect",list);
+-   fprintf(fp," %-7s   %-12s   %-9s   %s\n",
+-	   "name of",
+-	   "alloc.", "# alloc.",
+-	   "address"
+-	   );
+-   fprintf(fp," %-7s   %-12s   %-9s   %s\n",
+-	   " type",
+-	   "bytes", "variables",
+-	   "of *_free()"
+-	   );
+-
+-   for (i=0; i < mlist->ntypes; i++) 
+-     fprintf(fp,"  %-7s   %-12ld   %-9d   %p\n",
+-	     mlist->type_names[i], mlist->info_sum[i].bytes,
+-	     mlist->info_sum[i].numvar, mlist->free_funcs[i]
+-	     );
+-   
+-   fprintf(fp,"\n");
+-}
+-
+-
+-
+-/*=============================================================*/
+-
+-
+-/* local variables */
+-
+-static int	mem_switched_on = MEM_SWITCH_ON_DEF;  /* on/off */
+-
+-
+-/* switch on/off memory info */
+-
+-int mem_info_on(sw)
+-int sw;
+-{
+-   int old = mem_switched_on;
+-   
+-   mem_switched_on = sw;
+-   return old;
+-}
+-
+-#ifdef ANSI_C
+-int mem_info_is_on(void)
+-#else
+-int mem_info_is_on()
+-#endif
+-{
+-   return mem_switched_on;
+-}
+-
+-
+-/* information about allocated memory */
+-
+-/* return the number of allocated bytes for type 'type' */
+-
+-long mem_info_bytes(type,list)
+-int type,list;
+-{
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS )
+-     return 0l;
+-   if ( !mem_switched_on || type < 0 
+-       || type >= mem_connect[list].ntypes
+-       || mem_connect[list].free_funcs[type] == NULL )
+-     return 0l;
+-   
+-   return mem_connect[list].info_sum[type].bytes;
+-}
+-
+-/* return the number of allocated variables for type 'type' */
+-int mem_info_numvar(type,list)
+-int type,list;
+-{
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS )
+-     return 0l;
+-   if ( !mem_switched_on || type < 0 
+-       || type >= mem_connect[list].ntypes
+-       || mem_connect[list].free_funcs[type] == NULL )
+-     return 0l;
+-   
+-   return mem_connect[list].info_sum[type].numvar;
+-}
+-
+-
+-
+-/* print out memory info to the file fp */
+-void mem_info_file(fp,list)
+-FILE *fp;
+-int list;
+-{
+-   unsigned int type;
+-   long t = 0l, d;
+-   int n = 0, nt = 0;
+-   MEM_CONNECT *mlist;
+-   
+-   if (!mem_switched_on) return;
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS )
+-     return;
+-   
+-   if (list == 0)
+-     fprintf(fp," MEMORY INFORMATION (standard types):\n");
+-   else
+-     fprintf(fp," MEMORY INFORMATION (list no. %d):\n",list);
+-
+-   mlist = &mem_connect[list];
+-
+-   for (type=0; type < mlist->ntypes; type++) {
+-      if (mlist->type_names[type] == NULL ) continue;
+-      d = mlist->info_sum[type].bytes;
+-      t += d;
+-      n = mlist->info_sum[type].numvar;
+-      nt += n;
+-      fprintf(fp," type %-7s %10ld alloc. byte%c  %6d alloc. variable%c\n",
+-	      mlist->type_names[type], d, (d!=1 ? 's' : ' '),
+-	      n, (n!=1 ? 's' : ' '));
+-   }
+-
+-   fprintf(fp," %-12s %10ld alloc. byte%c  %6d alloc. variable%c\n\n",
+-	   "total:",t, (t!=1 ? 's' : ' '),
+-	   nt, (nt!=1 ? 's' : ' '));
+-}
+-
+-
+-/* function for memory information */
+-
+-
+-/* mem_bytes_list
+-   
+-   Arguments:
+-   type - the number of type;
+-   old_size - old size of allocated memory (in bytes);
+-   new_size - new size of allocated memory (in bytes);
+-   list - list of types
+-   */
+-
+-
+-void mem_bytes_list(type,old_size,new_size,list)
+-int type,list;
+-int old_size,new_size;
+-{
+-   MEM_CONNECT *mlist;
+-   
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS )
+-     return;
+-   
+-   mlist = &mem_connect[list];
+-   if (  type < 0 || type >= mlist->ntypes
+-       || mlist->free_funcs[type] == NULL )
+-     return;
+-
+-   if ( old_size < 0 || new_size < 0 )
+-     error(E_NEG,"mem_bytes_list");
+-
+-   mlist->info_sum[type].bytes += new_size - old_size;
+-   
+-   /* check if the number of bytes is non-negative */
+-   if ( old_size > 0 ) {
+-
+-      if (mlist->info_sum[type].bytes < 0)
+-      {
+-	 fprintf(stderr,
+-	   "\n WARNING !! memory info: allocated memory is less than 0\n");
+-	 fprintf(stderr,"\t TYPE %s \n\n", mlist->type_names[type]);
+-
+-	 if ( !isatty(fileno(stdout)) ) {
+-	    fprintf(stdout,
+-	      "\n WARNING !! memory info: allocated memory is less than 0\n");
+-	    fprintf(stdout,"\t TYPE %s \n\n", mlist->type_names[type]);
+-	 }
+-      }
+-   }
+-}
+-
+-
+-/* mem_numvar_list
+-   
+-   Arguments:
+-   type - the number of type;
+-   num - # of variables allocated (> 0) or deallocated ( < 0)
+-   list - list of types
+-   */
+-
+-
+-void mem_numvar_list(type,num,list)
+-int type,list,num;
+-{
+-   MEM_CONNECT *mlist;
+-   
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS )
+-     return;
+-   
+-   mlist = &mem_connect[list];
+-   if (  type < 0 || type >= mlist->ntypes
+-       || mlist->free_funcs[type] == NULL )
+-     return;
+-
+-   mlist->info_sum[type].numvar += num;
+-   
+-   /* check if the number of variables is non-negative */
+-   if ( num < 0 ) {
+-
+-      if (mlist->info_sum[type].numvar < 0)
+-      {
+-	 fprintf(stderr,
+-       "\n WARNING !! memory info: allocated # of variables is less than 0\n");
+-	 fprintf(stderr,"\t TYPE %s \n\n", mlist->type_names[type]);
+-	 if ( !isatty(fileno(stdout)) ) {
+-	    fprintf(stdout,
+-      "\n WARNING !! memory info: allocated # of variables is less than 0\n");
+-	    fprintf(stdout,"\t TYPE %s \n\n", mlist->type_names[type]);
+-	 }
+-      }
+-   }
+-}
+-
+//GO.SYSIN DD meminfo.c
+echo memstat.c 1>&2
+sed >memstat.c <<'//GO.SYSIN DD memstat.c' 's/^-//'
+-
+-/**************************************************************************
+-**
+-** Copyright (C) 1993 David E. Steward & Zbigniew Leyk, all rights reserved.
+-**
+-**			     Meschach Library
+-** 
+-** This Meschach Library is provided "as is" without any express 
+-** or implied warranty of any kind with respect to this software. 
+-** In particular the authors shall not be liable for any direct, 
+-** indirect, special, incidental or consequential damages arising 
+-** in any way from use of the software.
+-** 
+-** Everyone is granted permission to copy, modify and redistribute this
+-** Meschach Library, provided:
+-**  1.  All copies contain this copyright notice.
+-**  2.  All modified copies shall carry a notice stating who
+-**      made the last modification and the date of such modification.
+-**  3.  No charge is made for this software or works derived from it.  
+-**      This clause shall not be construed as constraining other software
+-**      distributed on the same medium as this software, nor is a
+-**      distribution fee considered a charge.
+-**
+-***************************************************************************/
+-
+-
+-/*  mem_stat.c    6/09/93  */
+-
+-/* Deallocation of static arrays */
+-
+-
+-#include <stdio.h>
+-#include  "matrix.h"
+-#include  "meminfo.h"
+-#ifdef COMPLEX   
+-#include  "zmatrix.h"
+-#endif
+-#ifdef SPARSE
+-#include  "sparse.h"
+-#include  "iter.h"
+-#endif
+-
+-static char rcsid[] = "$Id: memstat.c,v 1.1 1994/01/13 05:32:44 des Exp $";
+-
+-/* global variable */
+-
+-extern MEM_CONNECT mem_connect[MEM_CONNECT_MAX_LISTS];
+-
+-
+-/* local type */
+-
+-typedef struct {
+-   void **var;    /* for &A, where A is a pointer */
+-   int type;     /* type of A */
+-   int mark;      /* what mark is chosen */
+-} MEM_STAT_STRUCT;
+-
+-
+-/* local variables */
+-
+-/* how many marks are used */
+-static int mem_stat_mark_many = 0;
+-
+-/* current mark */
+-static int mem_stat_mark_curr = 0;
+-
+-
+-static MEM_STAT_STRUCT mem_stat_var[MEM_HASHSIZE];
+-
+-/* array of indices (+1) to mem_stat_var */
+-static unsigned int mem_hash_idx[MEM_HASHSIZE];
+-
+-/* points to the first unused element in mem_hash_idx */
+-static unsigned int mem_hash_idx_end = 0;
+-
+-
+-
+-/* hashing function */
+-
+-static unsigned int mem_hash(ptr)
+-void **ptr;
+-{
+-   unsigned long lp = (unsigned long)ptr;
+-
+-   return (lp % MEM_HASHSIZE);
+-}
+-
+-
+-/* look for a place in mem_stat_var */
+-static int mem_lookup(var)
+-void **var;
+-{
+-   int k, j;
+-
+-   k = mem_hash(var);
+-
+-   if (mem_stat_var[k].var == var) {
+-      return -1;
+-   }
+-   else if (mem_stat_var[k].var == NULL) {
+-      return k;
+-   }
+-   else {  /* look for an empty place */
+-      j = k;
+-      while (mem_stat_var[j].var != var && j < MEM_HASHSIZE
+-	     && mem_stat_var[j].var != NULL) 
+-	j++;
+-
+-      if (mem_stat_var[j].var == NULL) return j;
+-      else if (mem_stat_var[j].var == var) return -1; 
+-      else { /* if (j == MEM_HASHSIZE) */
+-	 j = 0;
+-	 while (mem_stat_var[j].var != var && j < k
+-		&& mem_stat_var[j].var != NULL) 
+-	   j++;
+-	 if (mem_stat_var[j].var == NULL) return j;
+-	 else if (mem_stat_var[j].var == var) return -1; 
+-	 else { /* if (j == k) */
+-	    fprintf(stderr,
+-              "\n WARNING !!! static memory: mem_stat_var is too small\n");
+-	    fprintf(stderr,
+-	      " Increase MEM_HASHSIZE in file: %s (currently = %d)\n\n",
+-		    MEM_HASHSIZE_FILE, MEM_HASHSIZE);
+-	    if ( !isatty(fileno(stdout)) ) {
+-	       fprintf(stdout,
+-                "\n WARNING !!! static memory: mem_stat_var is too small\n");
+-	       fprintf(stdout,
+-	        " Increase MEM_HASHSIZE in file: %s (currently = %d)\n\n",
+-		    MEM_HASHSIZE_FILE, MEM_HASHSIZE);
+-	    }
+-	    error(E_MEM,"mem_lookup");
+-	 }
+-      }
+-   }
+-
+-   return -1;
+-}
+-
+-
+-/* register static variables;
+-   Input arguments:
+-     var - variable to be registered,
+-     type - type of this variable; 
+-     list - list of types
+-
+-   returned value < 0  --> error,
+-   returned value == 0 --> not registered,
+-   returned value >= 0 --> registered with this mark;
+-*/
+-
+-int mem_stat_reg_list(var,type,list)
+-void **var;
+-int type,list;
+-{
+-   int n;
+-
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS )
+-     return -1;
+-
+-   if (mem_stat_mark_curr == 0) return 0;  /* not registered */
+-   if (var == NULL) return -1;             /* error */
+-
+-   if ( type < 0 || type >= mem_connect[list].ntypes || 
+-       mem_connect[list].free_funcs[type] == NULL )
+-   {
+-      warning(WARN_WRONG_TYPE,"mem_stat_reg_list");
+-      return -1;
+-   }
+-   
+-   if ((n = mem_lookup(var)) >= 0) {
+-      mem_stat_var[n].var = var;
+-      mem_stat_var[n].mark = mem_stat_mark_curr;
+-      mem_stat_var[n].type = type;
+-      /* save n+1, not n */
+-      mem_hash_idx[mem_hash_idx_end++] = n+1;
+-   }
+-
+-   return mem_stat_mark_curr;
+-}
+-
+-
+-/* set a mark;
+-   Input argument:
+-   mark - positive number denoting a mark;
+-   returned: 
+-             mark if mark > 0,
+-             0 if mark == 0,
+-	     -1 if mark is negative.
+-*/
+-
+-int mem_stat_mark(mark)
+-int mark;
+-{
+-   if (mark < 0) {
+-      mem_stat_mark_curr = 0;
+-      return -1;   /* error */
+-   }
+-   else if (mark == 0) {
+-      mem_stat_mark_curr = 0; 
+-      return 0; 
+-   }
+-
+-   mem_stat_mark_curr = mark;
+-   mem_stat_mark_many++;
+-
+-   return mark;
+-}
+-
+-
+-
+-/* deallocate static variables;
+-   Input argument:
+-   mark - a positive number denoting the mark;
+-
+-   Returned:
+-     -1 if mark < 0 (error);
+-     0  if mark == 0;
+-*/
+-
+-int mem_stat_free_list(mark,list)
+-int mark,list;
+-{
+-   u_int i,j;
+-   int	 (*free_fn)();
+-
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS 
+-       || mem_connect[list].free_funcs == NULL )
+-     return -1;
+-
+-   if (mark < 0) {
+-      mem_stat_mark_curr = 0;
+-      return -1;
+-   }
+-   else if (mark == 0) {
+-      mem_stat_mark_curr = 0;
+-      return 0;
+-   }
+-   
+-   if (mem_stat_mark_many <= 0) {
+-      warning(WARN_NO_MARK,"mem_stat_free");
+-      return -1;
+-   }
+-
+-   /* deallocate the marked variables */
+-   for (i=0; i < mem_hash_idx_end; i++) {
+-      j = mem_hash_idx[i];
+-      if (j == 0) continue;
+-      else {
+-	 j--;
+-	 if (mem_stat_var[j].mark == mark) {
+-	     free_fn = mem_connect[list].free_funcs[mem_stat_var[j].type];
+-	     if ( free_fn != NULL )
+-		 (*free_fn)(*mem_stat_var[j].var);
+-	     else
+-		 warning(WARN_WRONG_TYPE,"mem_stat_free");
+-	    
+-	    *(mem_stat_var[j].var) = NULL;
+-	    mem_stat_var[j].var = NULL;
+-	    mem_stat_var[j].mark = 0;
+-	    mem_hash_idx[i] = 0;
+-	 }
+-      }
+-   }
+-
+-   while (mem_hash_idx_end > 0 && mem_hash_idx[mem_hash_idx_end-1] == 0)
+-     mem_hash_idx_end--;
+-
+-   mem_stat_mark_curr = 0;
+-   mem_stat_mark_many--;
+-   return 0;
+-}
+-
+-
+-/* only for diagnostic purposes */
+-
+-void mem_stat_dump(fp,list)
+-FILE *fp;
+-int list;
+-{
+-   u_int i,j,k=1;
+-
+-   if ( list < 0 || list >= MEM_CONNECT_MAX_LISTS 
+-       || mem_connect[list].free_funcs == NULL )
+-     return;
+-
+-   fprintf(fp," Array mem_stat_var (list no. %d):\n",list);
+-   for (i=0; i < mem_hash_idx_end; i++) {
+-      j = mem_hash_idx[i];
+-      if (j == 0) continue;
+-      else {
+-	 j--;
+-	 fprintf(fp," %d.  var = 0x%p, type = %s, mark = %d\n",
+-		 k,mem_stat_var[j].var,
+-		 mem_stat_var[j].type < mem_connect[list].ntypes &&
+-		 mem_connect[list].free_funcs[mem_stat_var[j].type] != NULL ?
+-		 mem_connect[list].type_names[(int)mem_stat_var[j].type] : 
+-		 "???",
+-		 mem_stat_var[j].mark);
+-	 k++;
+-      }
+-   }
+-   
+-   fprintf(fp,"\n");
+-}
+-
+-
+-/* query function about the current mark */
+-#ifdef ANSI_C
+-int mem_stat_show_mark(void)
+-#else
+-int mem_stat_show_mark()
+-#endif
+-{
+-   return mem_stat_mark_curr;
+-}
+-
+-
+-/* Varying number of arguments */
+-
+-
+-#ifdef ANSI_C
+-
+-/* To allocate memory to many arguments. 
+-   The function should be called:
+-   mem_stat_vars(list,type,&v1,&v2,&v3,...,VNULL);
+-   where 
+-     int list,type;
+-     void **v1, **v2, **v3,...;
+-     The last argument should be VNULL ! 
+-     type is the type of variables v1,v2,v3,...
+-     (of course they must be of the same type)
+-*/
+-
+-int mem_stat_reg_vars(int list,int type,...)
+-{
+-   va_list ap;
+-   int i=0;
+-   void **par;
+-   
+-   va_start(ap, type);
+-   while (par = va_arg(ap,void **)) {   /* NULL ends the list*/
+-      mem_stat_reg_list(par,type,list);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-#elif VARARGS
+-/* old varargs is used */
+-
+-/* To allocate memory to many arguments. 
+-   The function should be called:
+-   mem_stat_vars(list,type,&v1,&v2,&v3,...,VNULL);
+-   where 
+-     int list,type;
+-     void **v1, **v2, **v3,...;
+-     The last argument should be VNULL ! 
+-     type is the type of variables v1,v2,v3,...
+-     (of course they must be of the same type)
+-*/
+-
+-int mem_stat_reg_vars(va_alist) va_dcl
+-{
+-   va_list ap;
+-   int type,list,i=0;
+-   void **par;
+-   
+-   va_start(ap);
+-   list = va_arg(ap,int);
+-   type = va_arg(ap,int);
+-   while (par = va_arg(ap,void **)) {   /* NULL ends the list*/
+-      mem_stat_reg_list(par,type,list);
+-      i++;
+-   } 
+-
+-   va_end(ap);
+-   return i;
+-}
+-
+-
+-#endif
+//GO.SYSIN DD memstat.c

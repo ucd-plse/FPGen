@@ -1,0 +1,30 @@
+==== S3FP arguments and settings ====
+input bit-width: 32
+n inputs: 4
+input_name: test_input
+LP EXE: ./sequential-64 -> test_output_64
+HP EXE: ./sequential-80 -> test_output_80
+RT_MODE: 1
+TIMEOUT: 600
+T_RESOURCE: 1
+RSEED: 0
+PARALLELRT: 0
+T_FP_ERROR: 1
+UNIFORM_INPUT: 1
+REL_DELTA: 1.17549e-38
+UNIFORM_INPUTLB: -100
+UNIFORM_INPUTUB: 100
+CHECK UNSTABLE ERROR: 0
+=====================================
+rm: cannot remove 'test_output_64': No such file or directory
+rm: cannot remove 'test_output_80': No such file or directory
+Update Global:  vLP: 231.671  vs  vHP: 231.671 -- 0
+N VALID PLAIN TESTS: 41366
+N PLAIN TESTS: 41366
+N LOCAL UPDATES: 0
+N GLOBAL UPDATES: 1
+Best Relative Error: 0 [0, 0]
+vLP : vHP when Rel. Error = 0 :: 231.671 : 231.671
+vLP : vHP when Rel. Error = 0 :: 231.671 : 231.671
+AVERAGE ERROR: 0
+ERROR VARIANCE: 0

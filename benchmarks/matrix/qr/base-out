@@ -1,0 +1,38 @@
+==== S3FP arguments and settings ====
+input bit-width: 32
+n inputs: 16
+input_name: test_input
+LP EXE: ./sequential-64 -> test_output_64
+HP EXE: ./sequential-80 -> test_output_80
+RT_MODE: 1
+TIMEOUT: 600
+T_RESOURCE: 1
+RSEED: 0
+PARALLELRT: 0
+T_FP_ERROR: 1
+UNIFORM_INPUT: 1
+REL_DELTA: 1.17549e-38
+UNIFORM_INPUTLB: -100
+UNIFORM_INPUTUB: 100
+CHECK UNSTABLE ERROR: 0
+=====================================
+rm: cannot remove 'test_output_64': No such file or directory
+rm: cannot remove 'test_output_80': No such file or directory
+Update Global:  vLP: 147.333  vs  vHP: 147.333 -- 0
+Update Global:  vLP: -86.0388  vs  vHP: -86.0388 -- 1.65168e-16
+Update Global:  vLP: 34.8734  vs  vHP: 34.8734 -- -2.03749e-16
+Update Global:  vLP: 68.7544  vs  vHP: 68.7544 -- -2.0669e-16
+Update Global:  vLP: 135.475  vs  vHP: 135.475 -- -2.09794e-16
+Update Global:  vLP: 133.315  vs  vHP: 133.315 -- -2.13193e-16
+Update Global:  vLP: 128.611  vs  vHP: 128.611 -- -2.20989e-16
+Update Global:  vLP: -128.428  vs  vHP: -128.428 -- 2.21305e-16
+Update Global:  vLP: 64.0912  vs  vHP: 64.0912 -- -2.21729e-16
+N VALID PLAIN TESTS: 40518
+N PLAIN TESTS: 40518
+N LOCAL UPDATES: 0
+N GLOBAL UPDATES: 9
+Best Relative Error: 2.21729e-16 [-2.21729e-16, 2.21305e-16]
+vLP : vHP when Rel. Error = -2.21729e-16 :: 64.0912 : 64.0912
+vLP : vHP when Rel. Error = 2.21305e-16 :: -128.428 : -128.428
+AVERAGE ERROR: 4.1034e-20
+ERROR VARIANCE: 8.58598e-36

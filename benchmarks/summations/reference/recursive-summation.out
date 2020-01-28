@@ -1,0 +1,76 @@
+/home/fptesting/FPTesting/benchmarks/summations
+
+Start symbolic execution 1:
+time klee --allow-external-sym-calls --max-solver-time=1800 --max-time=1800 --search=nurs:covnew recursive-summation-SYMBOLIC-sample.bc myinput
+---------------11--1-110--0111-1-0-0-011compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 1.0000000000e+00 [klee-last/test000060-input].
+---top 10 inputs
+klee-last/test002128-input -- 1.0000000000e+00
+klee-last/test002034-input -- 1.0000000000e+00
+klee-last/test000060-input -- 1.0000000000e+00
+klee-last/test002207-input -- 6.3605541948e-03
+klee-last/test002108-input -- 6.3605541948e-03
+klee-last/test001129-input -- 6.3605541948e-03
+klee-last/test001353-input -- 1.1156973158e-16
+klee-last/test000229-input -- 1.1156973158e-16
+klee-last/test000998-input -- 8.0201619808e-17
+klee-last/test000740-input -- 6.6260789431e-17
+
+Start symbolic execution 2:
+time klee --allow-external-sym-calls --max-solver-time=1800 --max-time=1800 --search=nurs:covnew recursive-summation-SYMBOLIC-sample.bc myinput
+---------------11--1-11-00-111-1-0-010-0-compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 1.0000000000e+00 [klee-last/test001015-input].
+---top 10 inputs
+klee-last/test001410-input -- 1.0000000000e+00
+klee-last/test001332-input -- 1.0000000000e+00
+klee-last/test001015-input -- 1.0000000000e+00
+klee-last/test000584-input -- 4.4100509898e-04
+klee-last/test000442-input -- 4.4100509898e-04
+klee-last/test000049-input -- 2.1717977280e-04
+klee-last/test001270-input -- 1.0405623667e-16
+klee-last/test001929-input -- 4.4518161929e-17
+klee-last/test000492-input -- 3.1106507531e-17
+klee-last/test001314-input -- 2.2215307812e-17
+
+Start symbolic execution 3:
+time klee --allow-external-sym-calls --max-solver-time=1800 --max-time=1800 --search=nurs:covnew recursive-summation-SYMBOLIC-sample.bc myinput
+---------------11--1-110--01111-0--0-101compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 1.0000000000e+00 [klee-last/test000413-input].
+---top 10 inputs
+klee-last/test000882-input -- 1.0000000000e+00
+klee-last/test000766-input -- 1.0000000000e+00
+klee-last/test000488-input -- 1.0000000000e+00
+klee-last/test000413-input -- 1.0000000000e+00
+klee-last/test001502-input -- 2.0642230842e-04
+klee-last/test001210-input -- 2.0642230842e-04
+klee-last/test000198-input -- 1.1373276659e-16
+klee-last/test001223-input -- 1.0136435461e-16
+klee-last/test000638-input -- 1.0136435461e-16
+klee-last/test000652-input -- 7.2891221300e-17
+
+Start symbolic execution 4:
+time klee --allow-external-sym-calls --max-solver-time=1800 --max-time=1800 --search=nurs:covnew recursive-summation-SYMBOLIC-sample.bc myinput
+---------------11--1-11-00-1-11110--0-0-011compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 1.0000000000e+00 [klee-last/test000113-input].
+---top 10 inputs
+klee-last/test001568-input -- 1.0000000000e+00
+klee-last/test001006-input -- 1.0000000000e+00
+klee-last/test000113-input -- 1.0000000000e+00
+klee-last/test001307-input -- 3.4021739832e-05
+klee-last/test001033-input -- 3.4021739832e-05
+klee-last/test000808-input -- 3.4021739832e-05
+klee-last/test001091-input -- 1.1102229202e-16
+klee-last/test001306-input -- 9.7865142309e-17
+klee-last/test001018-input -- 8.6736043304e-17
+klee-last/test001093-input -- 7.8966056552e-17
+Time Out [0]
+
+
+ FPGen log:
+N=32, S=16, SEED=334 : best relative error:1.0000e+00, number of tests:2396, time:00:30:00 [00:30:03]
+N=32, S=16, SEED=141 : best relative error:1.0000e+00, number of tests:2363, time:00:30:00 [00:30:05]
+N=32, S=16, SEED=428 : best relative error:1.0000e+00, number of tests:2362, time:00:30:00 [00:30:01]
+N=32, S=16, SEED=491 : best relative error:1.0000e+00, number of tests:2351, time:00:30:00 [00:30:03]
+
+
+ Best Relative Error:  1.0000e+00; Number of tests: 9472, time: 02:00:00 [S:16, SEED:334]

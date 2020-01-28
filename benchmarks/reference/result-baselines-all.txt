@@ -1,0 +1,108 @@
+Test recursive-summation:
+  -RANDOM      Rel. Error: 0, #Inputs: 583704, time: 02:00:00
+  -S3FP        Rel. Error: 0, #Inputs: 577227, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test pairwise-summation:
+  -RANDOM      Rel. Error: 0, #Inputs: 579979, time: 02:00:00
+  -S3FP        Rel. Error: 0, #Inputs: 551594, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test compensated-summation:
+  -RANDOM      Rel. Error: 0, #Inputs: 533939, time: 02:00:00
+  -S3FP        Rel. Error: 0, #Inputs: 550118, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test sum:
+  -RANDOM      Rel. Error: 0.0000e+00, #Inputs: 542842, time: 02:00:00
+  -S3FP        Rel. Error: 0.0000e+00, #Inputs: 550353, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test 1norm:
+  -RANDOM      Rel. Error: 0.0000e+00, #Inputs: 550180, time: 02:00:00
+  -S3FP        Rel. Error: 0.0000e+00, #Inputs: 549360, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test 2norm:
+  -RANDOM      Rel. Error: 3.1216e-16, #Inputs: 544735, time: 02:00:00
+  -S3FP        Rel. Error: 3.1170e-16, #Inputs: 542879, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test dot:
+  -RANDOM      Rel. Error: 1.7010e-12, #Inputs: 587409, time: 02:00:00
+  -S3FP        Rel. Error: 5.5831e-10, #Inputs: 541171, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test conv:
+  -RANDOM      Rel. Error: 9.2803e-13, #Inputs: 561780, time: 02:00:00
+  -S3FP        Rel. Error: 1.9864e-10, #Inputs: 529503, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test mv:
+  -RANDOM      Rel. Error: 0.0000e+00, #Inputs: 562187, time: 02:00:00
+  -S3FP        Rel. Error: 0.0000e+00, #Inputs: 559708, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test mm:
+  -RANDOM      Rel. Error: 1.1102e-16, #Inputs: 587108, time: 02:00:00
+  -S3FP        Rel. Error: 1.1102e-16, #Inputs: 530526, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test lu:
+  -RANDOM      Rel. Error: 0.0000e+00, #Inputs: 544796, time: 02:00:00
+  -S3FP        Rel. Error: 0.0000e+00, #Inputs: 543181, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 9, time: 00:01:20
+Test qr:
+  -RANDOM      Rel. Error: 0.0000e+00, #Inputs: 551384, time: 02:00:00
+  -S3FP        Rel. Error: 0.0000e+00, #Inputs: 502424, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 24, time: 02:24:51
+Test wmean:
+  -RANDOM      Rel. Error: 9.42898e-12, #Inputs: 526315, time: 02:00:00
+  -S3FP        Rel. Error: 1.66196e-07, #Inputs: 526118, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:01
+Test wvariance:
+  -RANDOM      Rel. Error: 1.50386e-11, #Inputs: 528128, time: 02:00:00
+  -S3FP        Rel. Error: 2.59545e-05, #Inputs: 528292, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wsd:
+  -RANDOM      Rel. Error: 7.51926e-12, #Inputs: 529821, time: 02:00:00
+  -S3FP        Rel. Error: 1.29772e-05, #Inputs: 535576, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wvariance-w:
+  -RANDOM      Rel. Error: 7.95929e-12, #Inputs: 529220, time: 02:00:00
+  -S3FP        Rel. Error: 2.09184e-05, #Inputs: 531397, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wsd-w:
+  -RANDOM      Rel. Error: 3.9797e-12, #Inputs: 531602, time: 02:00:00
+  -S3FP        Rel. Error: 1.04591e-05, #Inputs: 528545, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wtss:
+  -RANDOM      Rel. Error: 5.52941e-16, #Inputs: 526324, time: 02:00:00
+  -S3FP        Rel. Error: 4.77392e-16, #Inputs: 526869, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wtss-m:
+  -RANDOM      Rel. Error: 5.52941e-16, #Inputs: 527804, time: 02:00:00
+  -S3FP        Rel. Error: 4.77392e-16, #Inputs: 527223, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wvariance-m:
+  -RANDOM      Rel. Error: 1.50386e-11, #Inputs: 530117, time: 02:00:00
+  -S3FP        Rel. Error: 2.59545e-05, #Inputs: 534228, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wsd-m:
+  -RANDOM      Rel. Error: 7.51926e-12, #Inputs: 537097, time: 02:00:00
+  -S3FP        Rel. Error: 1.29772e-05, #Inputs: 539019, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wabsdev:
+  -RANDOM      Rel. Error: 2.68403e-11, #Inputs: 535959, time: 02:00:00
+  -S3FP        Rel. Error: 2.20766e-05, #Inputs: 535286, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:25
+Test wskew:
+  -RANDOM      Rel. Error: 2.50249e-11, #Inputs: 497012, time: 02:00:00
+  -S3FP        Rel. Error: 0.0316462, #Inputs: 507847, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:01
+Test wkurtosis:
+  -RANDOM      Rel. Error: 4.51066e-11, #Inputs: 499180, time: 02:00:00
+  -S3FP        Rel. Error: 4.31391e-08, #Inputs: 473608, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:24
+Test wabsdev-m:
+  -RANDOM      Rel. Error: 2.68403e-11, #Inputs: 504361, time: 02:00:00
+  -S3FP        Rel. Error: 2.20766e-05, #Inputs: 496713, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:24
+Test wskew-m:
+  -RANDOM      Rel. Error: 2.50249e-11, #Inputs: 481429, time: 02:00:00
+  -S3FP        Rel. Error: 0.0316462, #Inputs: 511752, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 1, time: 00:00:00
+Test wkurtosis-m:
+  -RANDOM      Rel. Error: 4.51066e-11, #Inputs: 496546, time: 02:00:00
+  -S3FP        Rel. Error: 4.31391e-08, #Inputs: 476881, time: 02:00:00
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:24

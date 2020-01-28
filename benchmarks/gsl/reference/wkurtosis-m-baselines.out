@@ -1,0 +1,148 @@
+/home/fptesting/FPTesting/benchmarks/gsl/wkurtosis-m/s3fp
+
+Start RANDOM:
+==== run random ====
+==== S3FP arguments and settings ====
+input bit-width: 32
+n inputs: 8
+input_name: test_input
+LP EXE: ./sequential-64 -> test_output_64
+HP EXE: ./sequential-80 -> test_output_80
+RT_MODE: 1
+TIMEOUT: 7200
+T_RESOURCE: 1
+RSEED: 0
+PARALLELRT: 0
+T_FP_ERROR: 1
+UNIFORM_INPUT: 1
+REL_DELTA: 1.17549e-38
+UNIFORM_INPUTLB: -100
+UNIFORM_INPUTUB: 100
+CHECK UNSTABLE ERROR: 0
+=====================================
+rm: cannot remove 'test_output_64': No such file or directory
+rm: cannot remove 'test_output_80': No such file or directory
+Update Global:  vLP: -2.70852  vs  vHP: -2.70852 -- 0
+Update Global:  vLP: -2.4157  vs  vHP: -2.4157 -- 1.83835e-16
+Update Global:  vLP: -2.35275  vs  vHP: -2.35275 -- -1.88753e-16
+Update Global:  vLP: -2.58017  vs  vHP: -2.58017 -- 3.44233e-16
+Update Global:  vLP: -1.49502  vs  vHP: -1.49502 -- 5.94091e-16
+Update Global:  vLP: -1.80535  vs  vHP: -1.80535 -- 6.14962e-16
+Update Global:  vLP: 2.03527  vs  vHP: 2.03527 -- 1.96377e-15
+Update Global:  vLP: 0.449291  vs  vHP: 0.449291 -- 1.97684e-15
+Update Global:  vLP: 0.404855  vs  vHP: 0.404855 -- -3.29073e-15
+Update Global:  vLP: -0.0842142  vs  vHP: -0.0842142 -- -2.57075e-14
+Update Global:  vLP: 0.067155  vs  vHP: 0.067155 -- 6.88155e-14
+Update Global:  vLP: -0.0196116  vs  vHP: -0.0196116 -- -1.38342e-13
+Update Global:  vLP: -0.00134826  vs  vHP: -0.00134826 -- -3.30989e-12
+Update Global:  vLP: 0.0014966  vs  vHP: 0.0014966 -- -4.51066e-11
+N VALID PLAIN TESTS: 366882
+N PLAIN TESTS: 496546
+N LOCAL UPDATES: 0
+N GLOBAL UPDATES: 14
+Best Relative Error: 4.51066e-11 [-4.51066e-11, 3.25773e-11]
+vLP : vHP when Rel. Error = -4.51066e-11 :: 0.0014966 : 0.0014966
+vLP : vHP when Rel. Error = 3.25773e-11 :: 0.000267938 : 0.000267938
+AVERAGE ERROR: 1.32627e-16
+ERROR VARIANCE: 5.57557e-27
+
+  -RANDOM      Rel. Error: 4.51066e-11, #Inputs: 496546, time: 02:00:00
+
+Start S3FP:
+==== run s3fp ====
+==== S3FP arguments and settings ====
+input bit-width: 32
+n inputs: 8
+input_name: test_input
+LP EXE: ./sequential-64 -> test_output_64
+HP EXE: ./sequential-80 -> test_output_80
+RT_MODE: 2
+TIMEOUT: 7200
+T_RESOURCE: 1
+RSEED: 0
+PARALLELRT: 0
+T_FP_ERROR: 1
+UNIFORM_INPUT: 1
+REL_DELTA: 1.17549e-38
+UNIFORM_INPUTLB: -100
+UNIFORM_INPUTUB: 100
+CHECK UNSTABLE ERROR: 0
+=====================================
+Update Global:  vLP: -2.41194  vs  vHP: -2.41194 -- 0
+Update Global:  vLP: -2.09924  vs  vHP: -2.09924 -- 2.11547e-16
+Update Global:  vLP: -0.988964  vs  vHP: -0.988964 -- 4.49045e-16
+Update Global:  vLP: -2.69586  vs  vHP: -2.69586 -- -4.94191e-16
+Update Global:  vLP: -1.05367  vs  vHP: -1.05367 -- 2.95027e-15
+Update Global:  vLP: -1.84337  vs  vHP: -1.84337 -- 3.85459e-15
+Update Global:  vLP: -1.69027  vs  vHP: -1.69027 -- 4.7292e-15
+Update Global:  vLP: -1.69638  vs  vHP: -1.69638 -- 6.28286e-15
+Update Global:  vLP: -2.10188  vs  vHP: -2.10188 -- -7.60615e-15
+Update Global:  vLP: -1.80927  vs  vHP: -1.80927 -- 1.41135e-14
+Update Global:  vLP: -1.86116  vs  vHP: -1.86116 -- 4.04441e-14
+Update Global:  vLP: -1.76994  vs  vHP: -1.76994 -- -5.04323e-14
+Update Global:  vLP: -1.84113  vs  vHP: -1.84113 -- -5.47534e-14
+Update Global:  vLP: -1.76617  vs  vHP: -1.76617 -- -6.67579e-14
+Update Global:  vLP: -1.93449  vs  vHP: -1.93449 -- -7.90849e-14
+Update Global:  vLP: -1.78638  vs  vHP: -1.78638 -- -3.13853e-13
+Update Global:  vLP: -1.73239  vs  vHP: -1.73239 -- -3.43246e-13
+Update Global:  vLP: -0.00304434  vs  vHP: -0.00304434 -- 7.64413e-13
+Update Global:  vLP: -1.75141  vs  vHP: -1.75141 -- 9.48697e-13
+Update Global:  vLP: -1.69797  vs  vHP: -1.69797 -- -1.44959e-12
+Update Global:  vLP: 8.38052e-05  vs  vHP: 8.38052e-05 -- 1.45181e-11
+Update Global:  vLP: -0.000164543  vs  vHP: -0.000164543 -- -1.73374e-11
+Update Global:  vLP: -0.000159716  vs  vHP: -0.000159716 -- 1.8691e-11
+Update Global:  vLP: -0.0001448  vs  vHP: -0.0001448 -- -2.30274e-11
+Update Global:  vLP: 9.97842e-06  vs  vHP: 9.97842e-06 -- 7.92528e-11
+Update Global:  vLP: 2.40611e-05  vs  vHP: 2.40611e-05 -- 9.78621e-11
+Update Global:  vLP: -1.99216e-05  vs  vHP: -1.99216e-05 -- 1.00052e-10
+Update Global:  vLP: -9.9422e-06  vs  vHP: -9.9422e-06 -- 1.33391e-10
+Update Global:  vLP: -7.83749e-06  vs  vHP: -7.83749e-06 -- 3.59229e-10
+Update Global:  vLP: 4.17895e-07  vs  vHP: 4.17895e-07 -- 1.29618e-09
+Update Global:  vLP: 2.687e-07  vs  vHP: 2.687e-07 -- 8.01511e-09
+Update Global:  vLP: -6.81799e-08  vs  vHP: -6.81799e-08 -- -4.31391e-08
+N VALID BGRT TESTS: 465064
+N BGRT TESTS: 476881
+N LOCAL UPDATES: 0
+N GLOBAL UPDATES: 32
+Best Relative Error: 4.31391e-08 [-4.31391e-08, 4.29856e-08]
+vLP : vHP when Rel. Error = -4.31391e-08 :: -6.81799e-08 : -6.81799e-08
+vLP : vHP when Rel. Error = 4.29856e-08 :: -1.76527e-07 : -1.76527e-07
+AVERAGE ERROR: 1.14603e-13
+ERROR VARIANCE: 4.14368e-21
+
+  -S3FP        Rel. Error: 4.31391e-08, #Inputs: 476881, time: 02:00:00
+
+Start KLEE-FLOAT:
+/home/fptesting/FPTesting/benchmarks/gsl/wkurtosis-m/klee
+time klee --allow-external-sym-calls --max-solver-time=7200 --max-time=7200 --search=nurs:covnew wkurtosis-m-SYMBOLIC.bc
+The sample variance is -3
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+The sample variance is nan
+compute_error.sh klee-last/test*-input ../test/sequential-64 ../test/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000016-input -- 0.0000000000e+00
+klee-last/test000015-input -- 0.0000000000e+00
+klee-last/test000014-input -- 0.0000000000e+00
+klee-last/test000013-input -- 0.0000000000e+00
+klee-last/test000012-input -- 0.0000000000e+00
+klee-last/test000011-input -- 0.0000000000e+00
+klee-last/test000010-input -- 0.0000000000e+00
+klee-last/test000009-input -- 0.0000000000e+00
+klee-last/test000008-input -- 0.0000000000e+00
+klee-last/test000007-input -- 0.0000000000e+00
+
+  -KLEE-FLOAT  Rel. Error: 0.0000e+00, #Inputs: 16, time: 00:00:24

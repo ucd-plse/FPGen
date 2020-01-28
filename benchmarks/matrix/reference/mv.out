@@ -1,0 +1,68 @@
+
+Start base search:
+==== run s3fp ====
+
+Start symbolic execution 1:
+time klee --allow-external-sym-calls --max-solver-time=3300 --max-time=3300 --search=nurs:covnew mv-SYMBOLIC-sample.bc myinput
+-10---------------1--1-0-----------------1-1-1-1--0---------------------1-111compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 8.9365504915e-04 [klee-last/test000016-input].
+---top 10 inputs
+klee-last/test000016-input -- 8.9365504915e-04
+klee-last/test000020-input -- 1.5650848583e-04
+klee-last/test000021-input -- 3.7793688454e-05
+klee-last/test000023-input -- 2.0444792274e-16
+klee-last/test000015-input -- 1.7113118154e-16
+klee-last/test000018-input -- 1.7113118147e-16
+klee-last/test000024-input -- 0.0000000000e+00
+klee-last/test000022-input -- 0.0000000000e+00
+klee-last/test000019-input -- 0.0000000000e+00
+klee-last/test000017-input -- 0.0000000000e+00
+
+Start symbolic execution 2:
+time klee --allow-external-sym-calls --max-solver-time=3300 --max-time=3300 --search=nurs:covnew mv-SYMBOLIC-sample.bc myinput
+1-1-1-01--1-11----1-1----11-1111-11-0--11--1----1---111-------------1--1-11--11---1-1--11-11-------01---1compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 7.0311552916e-04 [klee-last/test000028-input].
+---top 10 inputs
+klee-last/test000028-input -- 7.0311552916e-04
+klee-last/test000037-input -- 3.9081396126e-05
+klee-last/test000023-input -- 2.2347467362e-05
+klee-last/test000030-input -- 2.0990289431e-16
+klee-last/test000033-input -- 2.0229611834e-16
+klee-last/test000027-input -- 1.7192594363e-16
+klee-last/test000050-input -- 1.7192594053e-16
+klee-last/test000044-input -- 1.4642834489e-16
+klee-last/test000036-input -- 1.4642834341e-16
+klee-last/test000052-input -- 0.0000000000e+00
+Time Out [0]
+
+
+ FPGen log:
+base search : best relative error:5.0237e-14, number of tests:41104, time:00:10:00
+base values = 
+-5.586956e+01
+-3.332963e+01
+-2.084599e+01
+6.723174e+01
+-4.802370e+01
+7.728960e-01
+-8.696135e+01
+-6.662254e+01
+3.719778e+01
+-1.498418e+00
+2.718965e+01
+-2.996952e+01
+3.127524e+00
+5.179836e+00
+-2.719788e+01
+-5.294236e+00
+-9.553221e+01
+-9.972367e+01
+-4.191935e+01
+-9.073769e+01
+
+
+N=20, S=2, SEED=291 : best relative error:8.9366e-04, number of tests:24, time:00:55:00 [00:55:25]
+N=20, S=2, SEED=355 : best relative error:7.0312e-04, number of tests:52, time:00:55:00 [00:55:03]
+
+
+ Best Relative Error:  8.9366e-04; Number of tests: 41180, time: 02:00:00 [S:2, SEED:291]

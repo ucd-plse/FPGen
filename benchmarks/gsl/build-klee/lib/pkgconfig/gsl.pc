@@ -1,0 +1,11 @@
+prefix=/home/hguo/home1/auto-testing/benchmarks/gsl/gsl-2.0/build
+exec_prefix=/home/hguo/home1/auto-testing/benchmarks/gsl/gsl-2.0/build
+libdir=/home/hguo/home1/auto-testing/benchmarks/gsl/gsl-2.0/build/lib
+includedir=/home/hguo/home1/auto-testing/benchmarks/gsl/gsl-2.0/build/include
+GSL_CBLAS_LIB=-lgslcblas
+
+Name: GSL
+Description: GNU Scientific Library
+Version: 2.0
+Libs: -L/home/hguo/home1/auto-testing/benchmarks/gsl/gsl-2.0/build/lib -lgsl ${GSL_CBLAS_LIB} -lm -lm 
+Cflags: -I/home/hguo/home1/auto-testing/benchmarks/gsl/gsl-2.0/build/include

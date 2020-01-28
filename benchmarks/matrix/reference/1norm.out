@@ -1,0 +1,52 @@
+
+Start base search:
+==== run s3fp ====
+
+Start symbolic execution 1:
+time klee --allow-external-sym-calls --max-solver-time=3300 --max-time=3300 --search=nurs:covnew 1norm-SYMBOLIC-sample.bc myinput
+###################1#######################################1################1####################1#1#############################################################################################################################################1########################################1#####1###1#########################1###1################################1########1######1######11##########1##1compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000301-input -- 0.0000000000e+00
+klee-last/test000300-input -- 0.0000000000e+00
+klee-last/test000299-input -- 0.0000000000e+00
+klee-last/test000298-input -- 0.0000000000e+00
+klee-last/test000297-input -- 0.0000000000e+00
+klee-last/test000296-input -- 0.0000000000e+00
+klee-last/test000295-input -- 0.0000000000e+00
+klee-last/test000294-input -- 0.0000000000e+00
+klee-last/test000293-input -- 0.0000000000e+00
+klee-last/test000292-input -- 0.0000000000e+00
+
+Start symbolic execution 2:
+time klee --allow-external-sym-calls --max-solver-time=3300 --max-time=3300 --search=nurs:covnew 1norm-SYMBOLIC-sample.bc myinput
+####1###################1###1####1compute_error.sh klee-last/test*-input ../test-sample/sequential-64 ../test-sample/sequential-80
+Maximum relative error: 0.0 [none].
+---top 10 inputs
+klee-last/test000023-input -- 0.0000000000e+00
+klee-last/test000022-input -- 0.0000000000e+00
+klee-last/test000021-input -- 0.0000000000e+00
+klee-last/test000020-input -- 0.0000000000e+00
+klee-last/test000019-input -- 0.0000000000e+00
+klee-last/test000018-input -- 0.0000000000e+00
+klee-last/test000017-input -- 0.0000000000e+00
+klee-last/test000016-input -- 0.0000000000e+00
+klee-last/test000015-input -- 0.0000000000e+00
+klee-last/test000014-input -- 0.0000000000e+00
+Time Out [0]
+
+
+ FPGen log:
+base search : best relative error:0.0000e+00, number of tests:41366, time:00:10:00
+base values = 
+-9.142123e+01
+-6.138228e+00
+6.338556e+01
+-7.072617e+01
+
+
+N=4, S=4, SEED=291 : best relative error:0.0000e+00, number of tests:301, time:00:55:00 [00:05:00]
+N=4, S=2, SEED=355 : best relative error:0.0000e+00, number of tests:23, time:00:55:00 [00:00:25]
+
+
+ Best Relative Error:  0.0000e+00; Number of tests: 41690, time: 02:00:00 [S:-1, SEED:-1]

@@ -1,0 +1,51 @@
+
+Start base search:
+
+Start symbolic execution 1:
+Maximum relative error: 1.0000000000e+00 [klee-last/test000083-input].
+---top 10 inputs
+klee-last/test000092-input -- 1.0000000000e+00
+klee-last/test000086-input -- 1.0000000000e+00
+klee-last/test000083-input -- 1.0000000000e+00
+klee-last/test000100-input -- 1.3654766945e-03
+klee-last/test000109-input -- 9.7560975610e-04
+klee-last/test000090-input -- 1.1059455616e-08
+klee-last/test000077-input -- 2.0601719651e-16
+klee-last/test000128-input -- 0.0000000000e+00
+klee-last/test000127-input -- 0.0000000000e+00
+klee-last/test000126-input -- 0.0000000000e+00
+
+Start symbolic execution 2:
+Maximum relative error: 1.0000000000e+00 [klee-last/test000100-input].
+---top 10 inputs
+klee-last/test000139-input -- 1.0000000000e+00
+klee-last/test000122-input -- 1.0000000000e+00
+klee-last/test000107-input -- 1.0000000000e+00
+klee-last/test000100-input -- 1.0000000000e+00
+klee-last/test000086-input -- 1.3654766945e-03
+klee-last/test000108-input -- 9.7560975610e-04
+klee-last/test000140-input -- 2.1208502508e-04
+klee-last/test000134-input -- 1.1059455616e-08
+klee-last/test000085-input -- 2.0601719651e-16
+klee-last/test000147-input -- 0.0000000000e+00
+Time Out [0]
+
+
+ FPGen log:
+base search : best relative error:0.0000e+00, number of tests:89569, time:00:20:00
+base values = 
+-9.142123e+01
+-6.138228e+00
+6.338556e+01
+-7.072617e+01
+1.549559e+01
+-5.152333e+01
+-6.022923e+01
+-4.790160e-01
+
+
+N=8, S=4, SEED=334 : best relative error:1.0000e+00, number of tests:128, time:00:33:20 [00:33:35]
+N=8, S=4, SEED=141 : best relative error:1.0000e+00, number of tests:147, time:01:06:40 [00:42:04]
+
+
+ Best Relative Error:  1.0000e+00; Number of tests: 89844, time: 02:00:00 [S:4, SEED:334]
